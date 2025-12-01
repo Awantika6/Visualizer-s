@@ -1,0 +1,422 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Tree Terminology </title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 900px;
+        }
+
+        h1, h2 {
+            color: #007bff;
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.8em; /* Kept Heading Large */
+        }
+
+        /* --- Task & Feedback --- */
+        #taskDisplay {
+            font-size: 1.1em; /* Small Font Size for Task */
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+
+        #feedback {
+            min-height: 40px;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1em; /* Smaller Feedback Font */
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6fb; }
+        .feedback-info { background-color: #e6f2ff; color: #004085; border: 1px solid #b8daff; }
+
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover:not(:disabled) { background-color: #1e8736; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        /* --- Tree Visualization Layout --- */
+        #treeVisualization {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fcfcfc;
+        }
+
+        .node-container {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; 
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em; /* Smaller Node Font */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            border: 3px solid transparent;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .node-container:hover { border-color: #ffc107; }
+
+        .node-clicked-correct { background-color: #28a745 !important; border-color: #1e7e34 !important; }
+        .node-clicked-wrong { background-color: #dc3545 !important; border-color: #a71d2a !important; }
+        
+        /* Explanation Box */
+        .explanation-box {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #fff3cd; /* Warning Yellow */
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        /* Canvas for Edges */
+        #edgeCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
+        }
+        
+        /* Specific Terminology list styling for small font */
+        .explanation-box ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding-left: 0;
+            font-size: 0.9em; /* Smallest Font Size for Definitions */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌲 Binary Tree Terminology </h1>
+        
+        <div class="explanation-box">
+            <h5> Core Terminology Definitions</h5>
+            <ul>
+                <li>Root: The topmost node with no parent.</li>
+                <li>Leaf (External Node): Any node with no children.</li>
+                <li>Internal Node: Any node that has at least one child.</li>
+                <li>Parent: A node directly above another.</li>
+                <li>Child: A node directly below a parent.</li>
+                <li>Sibling: Nodes that share the same parent.</li>
+            </ul>
+        </div>
+        
+        <div id="taskDisplay">Click 'Start Task' to begin!</div>
+
+        <div id="treeVisualization">
+            <canvas id="edgeCanvas"></canvas>
+        </div>
+
+        <div id="feedback" class="feedback-info">
+            Instructions: Click on the node in the diagram that matches the requested term.
+        </div>
+
+        <div id="mainControls" class="controls">
+            <button onclick="startGame()">Start Task</button>
+            <button onclick="skipQuestion()" id="skipButton" disabled style="background-color:#ffc107; color:#333;">Skip Question</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const NODE_RADIUS = 20; // Node radius (adjusted for 40px node size)
+        const TERMINOLOGY_QUESTIONS = [
+            'Root', 
+            'Leaf', 
+            'Parent of Node E', 
+            'Child of Node B',
+            'Sibling of Node C',
+            'Internal Node',
+            'Node D (Specific Node)',
+            'Node A (Specific Node)',
+        ];
+        // SET TOTAL_TASKS EQUAL TO THE NUMBER OF UNIQUE QUESTIONS
+        const TOTAL_TASKS = TERMINOLOGY_QUESTIONS.length; 
+        
+        // Static Tree Structure (Ensures predictable quiz answers)
+        const TREE_DATA = [
+            { id: 1, data: 'A', parentId: null, type: 'Root' },
+            { id: 2, data: 'B', parentId: 1, type: 'Internal Node' },
+            { id: 3, data: 'C', parentId: 1, type: 'Leaf' },
+            { id: 4, data: 'D', parentId: 2, type: 'Leaf' },
+            { id: 5, data: 'E', parentId: 2, type: 'Internal Node' },
+            { id: 6, data: 'F', parentId: 5, type: 'Leaf' },
+            { id: 7, data: 'G', parentId: 5, type: 'Leaf' }
+        ];
+
+        // Layout coordinates (X, Y are center points, adjusted to fit 350px height)
+        const NODE_POSITIONS = {
+            1: { x: 450, y: 50, children: [2, 3] },
+            2: { x: 300, y: 150, children: [4, 5] },
+            3: { x: 600, y: 150, children: [] },
+            4: { x: 200, y: 250, children: [] },
+            5: { x: 400, y: 250, children: [6, 7] },
+            6: { x: 350, y: 320, children: [] }, 
+            7: { x: 450, y: 320, children: [] }  
+        };
+
+        // --- DOM Elements & State ---
+        const visualizationEl = document.getElementById('treeVisualization');
+        const taskDisplay = document.getElementById('taskDisplay');
+        const feedbackEl = document.getElementById('feedback');
+        const skipButton = document.getElementById('skipButton');
+
+        let nodes = {}; 
+        let currentQuestion = '';
+        let gameActive = false;
+        let questionCounter = 0; // Counter for numbering tasks
+        
+        // --- Core Functions ---
+
+        function setupNodes() {
+            // Reinitialize canvas and context to fit container size
+            visualizationEl.innerHTML = '<canvas id="edgeCanvas"></canvas>'; 
+            const newCanvas = document.getElementById('edgeCanvas');
+            const newCtx = newCanvas.getContext('2d');
+            
+            newCanvas.width = visualizationEl.clientWidth;
+            newCanvas.height = visualizationEl.clientHeight;
+            
+            nodes = {};
+            
+            TREE_DATA.forEach(data => {
+                const pos = NODE_POSITIONS[data.id];
+                
+                const nodeElement = document.createElement('div');
+                nodeElement.classList.add('node-container');
+                nodeElement.innerText = data.data;
+                nodeElement.dataset.id = data.id;
+                nodeElement.dataset.type = data.type;
+
+                // Position node element
+                nodeElement.style.left = `${pos.x - NODE_RADIUS}px`;
+                nodeElement.style.top = `${pos.y - NODE_RADIUS}px`;
+                
+                nodeElement.addEventListener('click', () => checkAnswer(data.id));
+                visualizationEl.appendChild(nodeElement);
+
+                nodes[data.id] = { ...data, ...pos, element: nodeElement };
+            });
+            
+            drawEdges(newCtx);
+        }
+        
+        function drawEdges(context) {
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            context.strokeStyle = '#999999';
+            context.lineWidth = 2;
+
+            TREE_DATA.forEach(nodeData => {
+                const node = nodes[nodeData.id];
+                if (node.parentId) {
+                    const parent = nodes[node.parentId];
+                    context.beginPath();
+                    // Start point: Parent (adjusted for node circle)
+                    context.moveTo(parent.x, parent.y + NODE_RADIUS);
+                    // End point: Child (adjusted for node circle)
+                    context.lineTo(node.x, node.y - NODE_RADIUS);
+                    context.stroke();
+                }
+            });
+        }
+
+        function startGame() {
+            setupNodes(); 
+            gameActive = true;
+            skipButton.disabled = false;
+            questionCounter = 0; // Reset counter at start
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (!gameActive) return;
+
+            // Check if all tasks are executed
+            if (questionCounter >= TOTAL_TASKS) {
+                endGame();
+                return;
+            }
+            
+            questionCounter++; // Increment task counter
+
+            // Clear previous feedback before loading new task
+            setFeedback('info', 'Identify the requested node type by clicking on the corresponding node.');
+            
+            // Randomly select a question without removal (allowing repeats if TOTAL_TASKS is high)
+            const randomIndex = Math.floor(Math.random() * TERMINOLOGY_QUESTIONS.length);
+            currentQuestion = TERMINOLOGY_QUESTIONS[randomIndex];
+
+            taskDisplay.innerHTML = `TASK ${questionCounter}: Click on the <strong>${currentQuestion}</strong>`;
+            clearHighlights();
+        }
+
+        function skipQuestion() {
+            if (gameActive) {
+                // Skips question, increments counter, and advances
+                setFeedback('info', 'Question skipped. Here is a new task.');
+                // Decrementing questionCounter here because nextQuestion increments it again
+                questionCounter--; 
+                nextQuestion();
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            skipButton.disabled = true;
+            taskDisplay.innerHTML = `🎉 QUIZ COMPLETE! 🎉`;
+            setFeedback('success', `You have successfully completed all ${TOTAL_TASKS} tasks. Click 'Start Task' to restart.`);
+            clearHighlights();
+        }
+
+        // --- Quiz Logic ---
+
+        function checkAnswer(clickedNodeId) {
+            if (!gameActive) return;
+
+            const clickedNode = nodes[clickedNodeId];
+            const clickedNodeData = clickedNode.data;
+            let isCorrect = false;
+
+            const q = currentQuestion;
+
+            // --- ANSWER CHECKING LOGIC ---
+            if (q === 'Root') {
+                isCorrect = clickedNode.type === 'Root';
+            } else if (q === 'Leaf') {
+                isCorrect = clickedNode.type === 'Leaf';
+            } else if (q === 'Internal Node') {
+                // Node A (Root) is also Internal as it has children.
+                isCorrect = clickedNode.type === 'Internal Node' || clickedNode.type === 'Root'; 
+            } else if (q === 'Node A (Specific Node)') {
+                isCorrect = clickedNodeData === 'A';
+            } else if (q === 'Node D (Specific Node)') {
+                isCorrect = clickedNodeData === 'D';
+            } else if (q === 'Parent of Node E') {
+                // Node E (id 5) parent is Node B (id 2)
+                isCorrect = (clickedNodeId === 2);
+            } else if (q === 'Child of Node B') {
+                // Children of B (id 2) are D (id 4) and E (id 5)
+                isCorrect = (clickedNodeId === 4 || clickedNodeId === 5);
+            } else if (q === 'Sibling of Node C') {
+                // Sibling of C (id 3) is B (id 2)
+                isCorrect = (clickedNodeId === 2);
+            }
+            // --- END ANSWER CHECKING LOGIC ---
+
+
+            // --- Feedback & Transition ---
+            highlightNode(clickedNodeId, isCorrect);
+
+            if (isCorrect) {
+                setFeedback('success', `✅ Correct! Node ${clickedNodeData} is the ${q}. Moving to the next question...`);
+                // Advance after a delay
+                setTimeout(nextQuestion, 1500); 
+            } else {
+                setFeedback('error', `❌ Incorrect. Node ${clickedNodeData} does not fit the description: ${q}. Try again!`);
+            }
+        }
+
+        function setFeedback(type, message) {
+            feedbackEl.className = '';
+            feedbackEl.classList.add(`feedback-${type}`);
+            feedbackEl.innerHTML = message;
+        }
+
+        function highlightNode(nodeId, isCorrect) {
+            const el = nodes[nodeId].element;
+            
+            el.classList.remove('node-clicked-correct', 'node-clicked-wrong'); 
+            
+            if (isCorrect) {
+                el.classList.add('node-clicked-correct');
+            } else {
+                el.classList.add('node-clicked-wrong');
+                // Remove wrong highlight after short delay
+                setTimeout(() => {
+                    el.classList.remove('node-clicked-wrong');
+                }, 700);
+            }
+        }
+
+        function clearHighlights() {
+            Object.values(nodes).forEach(node => {
+                node.element.classList.remove('node-clicked-correct', 'node-clicked-wrong');
+                node.element.style.borderColor = 'transparent'; 
+            });
+        }
+        
+        // --- Event Listeners ---
+        window.addEventListener('resize', () => {
+            // Re-render the tree on resize to maintain layout integrity
+            setupNodes();
+        });
+
+        // Initial setup
+        setupNodes();
+    </script>
+</body>
+</html>
