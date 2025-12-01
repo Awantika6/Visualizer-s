@@ -1,0 +1,467 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector & Scalar  | Linear Algebra</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* Very light subtle background */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            color: #4a148c; /* Deep Purple */
+            text-align: center;
+            border-bottom: 3px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        /* --- Info & Task Display --- */
+        #taskDisplay {
+            font-size: 1.4em;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #ffcc00; /* Vibrant yellow for task */
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        /* --- Visualization Grid --- */
+        #visualizationArea {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* --- Card Styles (Vector, Scalar, Result) --- */
+        .op-card {
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            flex: 1;
+            min-height: 200px;
+        }
+
+        .vector-label {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #007bff;
+        }
+        
+        .op-card.result-card {
+            background-color: #e6ffed; /* Light green result background */
+            border: 2px solid #28a745;
+        }
+
+        /* --- Grid & Vector Styling --- */
+        .vector-grid {
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 5px;
+            background-color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4a148c; /* Deep Purple for vector values */
+        }
+        
+        .grid-cell {
+            padding: 5px 10px;
+        }
+        
+        .operation-sign {
+            font-size: 3em;
+            font-weight: 900;
+            color: #dc3545;
+        }
+        
+        /* --- Result Input Styling --- */
+        #result-input-area {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .result-input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-input-group label {
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #6f42c1;
+        }
+        
+        .result-input {
+            width: 60px;
+            padding: 8px;
+            border: 2px solid #a0a0a0;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: bold;
+            outline: none;
+        }
+        .result-input:focus {
+            border-color: #6f42c1;
+        }
+
+        /* --- Feedback & Controls --- */
+        #feedback {
+            font-weight: 500;
+        }
+        
+        .action-controls {
+            text-align: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        .action-controls button {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        #startBtn { background-color: #4a148c; color: white; }
+        #checkBtn { background-color: #dc3545; color: white; }
+        #nextBtn { background-color: #28a745; color: white; }
+        
+        button:hover:not(:disabled) { transform: translateY(-1px); }
+        button:disabled { background-color: #cccccc; color: #666; cursor: not-allowed; }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scalar and Vector  | Unit 1 Linear Algebra</h1>
+        
+        <div id="taskDisplay">Click Start task to begin the challenge!</div>
+
+        <div id="visualizationArea">
+            
+            <div id="operand1_Card" class="op-card">
+                <div id="operand1_Label" class="vector-label">Vector A</div>
+                <div id="operand1_Grid" class="vector-grid">
+                    </div>
+            </div>
+
+            <div id="operationSign" class="operation-sign"></div>
+
+            <div id="operand2_Card" class="op-card">
+                <div id="operand2_Label" class="vector-label">Vector B</div>
+                <div id="operand2_Grid" class="vector-grid">
+                    </div>
+            </div>
+
+            <div class="operation-sign">=</div>
+
+            <div id="result_Card" class="op-card result-card">
+                <div class="vector-label">Result R (Your Answer)</div>
+                <div id="result_Grid" class="vector-grid">
+                    </div>
+                
+                <div id="result-input-area">
+                    </div>
+            </div>
+            
+        </div>
+
+        <div id="feedback" class="feedback-info">
+            Instructions: Calculate the resulting vector R by applying the operation.
+        </div>
+
+        <div class="action-controls">
+            <button onclick="startGame()" id="startBtn">Start Task</button>
+            <button onclick="checkAnswer()" id="checkBtn" disabled>Check Result</button>
+            <button onclick="nextQuestion()" id="nextBtn" disabled>Next Challenge</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const CHALLENGE_STEPS = 5;
+        const VECTOR_DIMENSION = 3; 
+        const MIN_VAL = -4; 
+        const MAX_VAL = 4;
+
+        // --- State Variables ---
+        let gameActive = false;
+        let stepCounter = 0;
+        let currentOperation = ''; // 'ADD' or 'SCALAR'
+        let vectorA = []; 
+        let vectorB = []; 
+        let scalarC = 0; 
+        let expectedResult = [];
+
+        // --- DOM Elements ---
+        const taskDisplay = document.getElementById('taskDisplay');
+        const feedbackEl = document.getElementById('feedback');
+        const operand1Label = document.getElementById('operand1_Label');
+        const operand2Label = document.getElementById('operand2_Label');
+        const operand1Grid = document.getElementById('operand1_Grid');
+        const operand2Grid = document.getElementById('operand2_Grid');
+        const resultGrid = document.getElementById('result_Grid');
+        const operationSign = document.getElementById('operationSign');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const startBtn = document.getElementById('startBtn');
+        const resultInputArea = document.getElementById('result-input-area');
+        
+        // --- Utility Functions ---
+
+        function generateRandomVector(dimension) {
+             const vector = [];
+            for (let i = 0; i < dimension; i++) {
+                vector.push(Math.floor(Math.random() * (MAX_VAL - MIN_VAL + 1)) + MIN_VAL);
+            }
+            return vector;
+        }
+
+        function calculateExpectedResult() {
+            expectedResult = [];
+            
+            if (currentOperation === 'ADD') {
+                for (let i = 0; i < VECTOR_DIMENSION; i++) {
+                    expectedResult.push(vectorA[i] + vectorB[i]);
+                }
+            } else if (currentOperation === 'SCALAR') {
+                for (let i = 0; i < VECTOR_DIMENSION; i++) {
+                    expectedResult.push(vectorA[i] * scalarC);
+                }
+            } 
+        }
+        
+        // --- Visualization & UI Functions ---
+
+        function renderVector(gridElement, data, isVector) {
+            gridElement.innerHTML = '';
+            
+            if (isVector) {
+                // Render as a vertical vector
+                data.forEach(component => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell');
+                    cell.textContent = component;
+                    gridElement.appendChild(cell);
+                });
+            } else {
+                // Render as a single scalar box
+                gridElement.style.padding = '10px 20px';
+                gridElement.textContent = data[0];
+            }
+        }
+
+        function renderResultInputs() {
+            resultGrid.innerHTML = '';
+            resultInputArea.innerHTML = '';
+            
+            // Render result display template (empty cells)
+            for (let i = 0; i < VECTOR_DIMENSION; i++) {
+                const displayCell = document.createElement('div');
+                displayCell.classList.add('grid-cell', 'result-input-display');
+                displayCell.id = `R_display_${i}`;
+                displayCell.textContent = 0;
+                resultGrid.appendChild(displayCell);
+                
+                // Render input fields
+                const inputGroup = document.createElement('div');
+                inputGroup.classList.add('result-input-group');
+                
+                const inputLabel = document.createElement('label');
+                inputLabel.textContent = `R[${i}] Component`;
+                
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.classList.add('result-input');
+                input.id = `R_input_${i}`;
+                input.value = 0;
+                input.oninput = () => { 
+                    document.getElementById(`R_display_${i}`).textContent = input.value || 0;
+                };
+                
+                inputGroup.appendChild(inputLabel);
+                inputGroup.appendChild(input);
+                resultInputArea.appendChild(inputGroup);
+            }
+        }
+        
+        function updateUI() {
+            if (currentOperation === 'ADD') {
+                // Operand 1: Vector A
+                operand1Label.textContent = 'Vector A';
+                renderVector(operand1Grid, vectorA, true);
+                
+                // Operation
+                operationSign.textContent = 'plus';
+                
+                // Operand 2: Vector B
+                operand2Label.textContent = 'Vector B';
+                renderVector(operand2Grid, vectorB, true);
+                
+                taskDisplay.textContent = `TASK ${stepCounter}/${CHALLENGE_STEPS}: Calculate the Vector Sum R equals A plus B.`;
+                
+            } else if (currentOperation === 'SCALAR') {
+                // Operand 1: Scalar c
+                operand1Label.textContent = `Scalar c`;
+                renderVector(operand1Grid, [scalarC], false); // Pass false for isVector (it's a scalar)
+                
+                // Operation
+                operationSign.textContent = 'times';
+                
+                // Operand 2: Vector A
+                operand2Label.textContent = 'Vector A';
+                renderVector(operand2Grid, vectorA, true);
+                
+                taskDisplay.textContent = `TASK ${stepCounter}/${CHALLENGE_STEPS}: Calculate the Scaled Vector R equals c times A.`;
+            }
+
+            renderResultInputs();
+            setFeedback('info', 'Enter the component values of the resulting vector R.');
+            checkBtn.disabled = false;
+            nextBtn.disabled = true;
+        }
+
+        function setFeedback(type, message) {
+            feedbackEl.className = '';
+            feedbackEl.classList.add(`feedback-${type}`);
+            feedbackEl.textContent = message;
+        }
+
+        // --- Game Flow ---
+
+        function startGame() {
+            gameActive = true;
+            stepCounter = 0;
+            startBtn.disabled = true;
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (!gameActive) return;
+
+            stepCounter++;
+            if (stepCounter > CHALLENGE_STEPS) {
+                endGame();
+                return;
+            }
+
+            // Cycle through operations (ADD, SCALAR)
+            currentOperation = Math.random() < 0.5 ? 'ADD' : 'SCALAR';
+
+            // Setup data based on operation
+            if (currentOperation === 'ADD') {
+                vectorA = generateRandomVector(VECTOR_DIMENSION);
+                vectorB = generateRandomVector(VECTOR_DIMENSION);
+            } else if (currentOperation === 'SCALAR') {
+                vectorA = generateRandomVector(VECTOR_DIMENSION);
+                scalarC = Math.floor(Math.random() * 5) - 2; 
+                if (scalarC === 0) scalarC = 3;
+            } 
+
+            calculateExpectedResult();
+            updateUI();
+        }
+
+        function checkAnswer() {
+            const inputs = resultInputArea.querySelectorAll('input');
+            const userResult = Array.from(inputs).map(input => parseInt(input.value));
+            
+            let isCorrect = true;
+            let feedbackMsg = 'Correct Advancing to the next task.';
+
+            if (userResult.length !== expectedResult.length || userResult.some(isNaN)) {
+                isCorrect = false;
+                feedbackMsg = 'Error Please ensure all component inputs are valid numbers.';
+            } else {
+                for (let i = 0; i < expectedResult.length; i++) {
+                    if (userResult[i] !== expectedResult[i]) {
+                        isCorrect = false;
+                        feedbackMsg = `Incorrect Check component ${i + 1}. The correct value was ${expectedResult[i]}.`;
+                        break;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                setFeedback('success', feedbackMsg);
+                checkBtn.disabled = true;
+                nextBtn.disabled = false;
+                
+                // Visual feedback integration: Animate the result ball (conceptual)
+                const targetBall = document.getElementById('targetBall');
+                targetBall.style.backgroundColor = '#28a745'; // Turn green
+                targetBall.style.boxShadow = '0 0 15px rgba(40, 167, 69, 1)';
+                
+                // Advance manually using the Next Task button
+            } else {
+                setFeedback('error', feedbackMsg);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            taskDisplay.textContent = `CHALLENGE COMPLETE`;
+            setFeedback('success', `You successfully completed ${CHALLENGE_STEPS} linear algebra tasks.`);
+            checkBtn.disabled = true;
+            nextBtn.disabled = true;
+            startBtn.disabled = false;
+        }
+
+        // Initialize UI with placeholder
+        window.onload = function() {
+            vectorA = [1, 2, 3];
+            vectorB = [4, 5, 6];
+            currentOperation = 'ADD';
+            renderVector(operand1Grid, vectorA, true);
+            renderVector(operand2Grid, vectorB, true);
+            renderResultInputs();
+            document.getElementById('operand1_Label').textContent = 'Vector A';
+            document.getElementById('operand2_Label').textContent = 'Vector B';
+            document.getElementById('operationSign').textContent = 'plus';
+            document.getElementById('taskDisplay').textContent = 'Vector Addition Challenge Ready';
+        };
+        
+        // --- Next Button Functionality ---
+        nextBtn.onclick = function() {
+            if (!nextBtn.disabled) {
+                nextQuestion();
+            }
+        };
+    </script>
+</body>
+</html>

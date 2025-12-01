@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFS DFS Traversal Challenge</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Consolas', monospace;
+            background-color: #f4f7f6; 
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 950px;
+        }
+
+        h1 {
+            color: #007bff; /* Primary Blue */
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+
+        /* --- Description/Info Box --- */
+        .info-box {
+            background-color: #e9f0ff;
+            border-left: 5px solid #007bff; 
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .info-box h5 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        /* --- Task & Feedback --- */
+        #taskDisplay {
+            font-size: 1.3em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ffc107; /* Yellow for prominence */
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #feedback {
+            min-height: 40px;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-success { background-color: #d4edda; color: #155724; }
+        .feedback-error { background-color: #f8d7da; color: #721c24; }
+        .feedback-info { background-color: #e9ecef; color: #333; }
+
+        /* --- Graph Visualization/State --- */
+        #graphState {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px dashed #007bff;
+            border-radius: 8px;
+        }
+
+        .state-card {
+            background-color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 40%;
+        }
+        .state-card h4 {
+            margin-top: 0;
+            color: #dc3545; /* Red accent */
+            font-size: 1em;
+        }
+        #dataStructureContent {
+            font-size: 1.1em;
+            min-height: 30px;
+            color: #007bff;
+        }
+        #visitedList {
+            font-size: 0.9em;
+            color: #28a745;
+        }
+        
+        /* --- Answer Controls --- */
+        #answerControls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #answerControls button {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        #answerControls button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Graph Traversal Challenge BFS versus DFS</h1>
+        
+        <div class="info-box">
+            <h5>Graph Rules Start Node A</h5>
+            <p>The graph is fixed and directed. We always prioritize neighbors alphabetically A B C D when adding them to the queue or stack.</p>
+            <ul>
+                <li>BFS Breadth-First Search: Uses a Queue FIFO. Explores layer by layer.</li>
+                <li>DFS Depth-First Search: Uses a Stack LIFO. Explores as deeply as possible before backtracking.</li>
+            </ul>
+        </div>
+
+        <div id="taskDisplay">Click Start Challenge to begin!</div>
+
+        <div id="graphState">
+            <div class="state-card">
+                <h4>Data Structure Queue or Stack</h4>
+                <div id="dataStructureContent"></div>
+                <p style="font-size:0.8em; color:#888;" id="datastructureRule"></p>
+            </div>
+            <div class="state-card">
+                <h4>Visited Nodes Traversal Order</h4>
+                <div id="visitedList"></div>
+            </div>
+        </div>
+
+        <div id="feedback" class="feedback-info">
+            Instructions: Predict the next node to be visited.
+        </div>
+
+        <div id="answerControls">
+            </div>
+
+        <div class="controls">
+            <button onclick="startGame()" id="startBtn" style="background-color: #28a745;">Start Challenge</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration and Constants ---
+        const CHALLENGE_STEPS = 8;
+        
+        // Fixed Graph Adjacency List (Directed, Neighbors sorted alphabetically)
+        const GRAPH = {
+            A: ['B', 'C'],
+            B: ['D', 'E'],
+            C: ['F'],
+            D: ['G'],
+            E: ['H'],
+            F: ['H'],
+            G: [],
+            H: []
+        };
+        const ALL_NODES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        
+        // --- State Variables ---
+        let gameActive = false;
+        let stepCounter = 0;
+        let currentMode = ''; // 'BFS' or 'DFS'
+        let ds = []; // Data Structure (Queue/Stack)
+        let visited = new Set();
+        
+        // --- DOM Elements ---
+        const taskDisplay = document.getElementById('taskDisplay');
+        const feedbackEl = document.getElementById('feedback');
+        const dsContentEl = document.getElementById('dataStructureContent');
+        const visitedListEl = document.getElementById('visitedList');
+        const dsRuleEl = document.getElementById('datastructureRule');
+        const answerControlsEl = document.getElementById('answerControls');
+        const startBtn = document.getElementById('startBtn');
+
+        // --- Utility Functions ---
+
+        function getNeighbors(node) {
+            // Returns unvisited neighbors, sorted alphabetically
+            return (GRAPH[node] || []).filter(n => !visited.has(n));
+        }
+
+        // --- Visualization and UI Functions ---
+
+        function updateStateDisplay() {
+            const dsType = currentMode === 'BFS' ? 'Queue' : 'Stack';
+            
+            // Display Data Structure Content (Queue: Front -> Back; Stack: Bottom -> Top)
+            let dsDisplay;
+            if (currentMode === 'BFS') {
+                dsDisplay = ds.join(' - '); // FIFO: First element is dequeued
+                dsRuleEl.textContent = 'Queue Front - Back (Next to visit is on the far left)';
+            } else { // DFS
+                // Displaying Stack: Bottom -> Top
+                dsDisplay = ds.join(' - '); // LIFO: Last element is popped
+                dsRuleEl.textContent = 'Stack Bottom - Top (Next to visit is on the far right)';
+            }
+            
+            dsContentEl.innerHTML = dsType + ': [ ' + dsDisplay + ' ]';
+            
+            // Display Visited Nodes
+            visitedListEl.textContent = Array.from(visited).join(', ');
+            
+            // Update Task Display
+            taskDisplay.textContent = 'TASK ' + stepCounter + '/' + CHALLENGE_STEPS + ': ' + currentMode + '. Select the NEXT Node to be Visited Dequeued or Popped.';
+        }
+
+        function createAnswerButtons() {
+            answerControlsEl.innerHTML = '';
+            ALL_NODES.forEach(node => {
+                const btn = document.createElement('button');
+                btn.textContent = node;
+                btn.onclick = () => checkAnswer(node);
+                answerControlsEl.appendChild(btn);
+            });
+        }
+
+        function setFeedback(type, message) {
+            feedbackEl.className = '';
+            feedbackEl.classList.add('feedback-' + type);
+            feedbackEl.textContent = message;
+        }
+
+        // --- Game Flow ---
+
+        function startGame() {
+            gameActive = true;
+            stepCounter = 0;
+            startBtn.disabled = true;
+            createAnswerButtons();
+            
+            // Randomly choose the initial mode
+            currentMode = Math.random() < 0.5 ? 'BFS' : 'DFS';
+            
+            // Reset state for the new traversal
+            ds = ['A']; 
+            visited = new Set();
+            
+            // Perform the first visit step manually (since 'A' is the start)
+            visited.add('A');
+            const neighborsA = getNeighbors('A'); // B, C
+            
+            if (currentMode === 'BFS') {
+                ds.push(...neighborsA); // [A, B, C]
+            } else { // DFS
+                // DFS pushes neighbors onto the stack LIFO, so neighborsA order (B, C) is reversed (C, B)
+                ds.push(...neighborsA.reverse()); // [A, C, B]
+            }
+            
+            nextStep(); // Advance to the first predictive step
+        }
+
+        function nextStep() {
+            if (!gameActive) return;
+            
+            // Check for completion
+            if (ds.length === 0 || stepCounter >= CHALLENGE_STEPS) {
+                endGame();
+                return;
+            }
+            
+            stepCounter++;
+            updateStateDisplay();
+            setFeedback('info', 'Which node is at the front of the queue BFS or top of the stack DFS? Click that node.');
+        }
+
+        // --- Core Answer Logic ---
+
+        function checkAnswer(clickedNode) {
+            if (!gameActive) return;
+
+            let expectedNode;
+            
+            if (currentMode === 'BFS') {
+                expectedNode = ds[0]; // FIFO (Front of Queue)
+            } else { // DFS
+                expectedNode = ds[ds.length - 1]; // LIFO (Top of Stack)
+            }
+
+            if (clickedNode === expectedNode) {
+                // Correct: Visit Node and Update Data Structure
+
+                // 1. Remove node from DS
+                if (currentMode === 'BFS') {
+                    ds.shift(); // Dequeue
+                } else {
+                    ds.pop(); // Pop
+                }
+                
+                // 2. Add node to Visited
+                visited.add(expectedNode);
+                
+                // 3. Add neighbors (only unvisited ones) to DS
+                const neighbors = getNeighbors(expectedNode);
+                
+                if (currentMode === 'BFS') {
+                    ds.push(...neighbors); // Enqueue at back
+                } else { // DFS
+                    // Push neighbors LIFO (Must reverse neighbors array first)
+                    neighbors.reverse();
+                    ds.push(...neighbors); // Push onto top
+                }
+
+                setFeedback('success', 'Correct Node ' + expectedNode + ' visited. State updated.');
+                setTimeout(nextStep, 1000);
+
+            } else {
+                setFeedback('error', 'Incorrect. That node is not the next one to be visited in ' + currentMode + ' traversal.');
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            taskDisplay.textContent = 'CHALLENGE COMPLETE';
+            setFeedback('success', 'Traversal complete in ' + stepCounter + ' steps. Click Start Challenge to begin a new mode.');
+            startBtn.disabled = false;
+        }
+
+        // --- Initial Setup ---
+        window.onload = function() {
+            setFeedback('info', 'Challenge initialized. Click Start Challenge to begin a random traversal mode.');
+            createAnswerButtons(); // Populate initial A-H buttons
+        };
+    </script>
+</body>
+</html>
