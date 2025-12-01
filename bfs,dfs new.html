@@ -1,0 +1,520 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DFS & BFS Traversal Challenge | Algorithms</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1000px; 
+        }
+
+        h1 {
+            color: #00796b; /* Teal */
+            text-align: center;
+            border-bottom: 3px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        /* --- Task Display & Controls --- */
+        #taskDisplay {
+            font-size: 1.4em;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #ffb300; /* Amber for task */
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .action-controls {
+            text-align: center;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .action-controls button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        #startBtn { background-color: #43a047; color: white; } /* Green */
+        #dfsBtn { background-color: #1e88e5; color: white; } /* Blue */
+        #bfsBtn { background-color: #d81b60; color: white; } /* Pink/Red */
+        #resetBtn { background-color: #e0e0e0; color: #333; }
+        
+        button:hover:not(:disabled) { transform: translateY(-1px); }
+        button:disabled { background-color: #cccccc; color: #666; cursor: not-allowed; }
+        
+        /* --- Visualization Area (Grid/Maze) --- */
+        #visualContainer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        #graphGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            grid-template-rows: repeat(4, 60px);
+            border: 5px solid #00796b;
+            border-radius: 8px;
+            background-color: #e0f2f1; /* Light Teal background */
+            flex-shrink: 0; 
+        }
+        
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            border: 1px solid #b2dfdb;
+            box-sizing: border-box;
+            background-color: white;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        /* Special Cell Styles */
+        .start { background-color: #4caf50 !important; color: white; border-color: #2e7d32; } /* Green Start */
+        .end { background-color: #d32f2f !important; color: white; border-color: #b71c1c; } /* Red End */
+        .wall { background-color: #78909c !important; color: white; cursor: not-allowed; border-color: #546e7a; } /* Gray Wall */
+        
+        /* Animation/Visited State Styles */
+        .visited {
+            background-color: #ffecb3; /* Light Yellow visited */
+            animation: pulse 0.5s ease-out;
+        }
+        
+        .current-node {
+             background-color: #4CAF50 !important;
+             color: white;
+             border: 2px solid white;
+             box-shadow: 0 0 10px rgba(76, 175, 80, 0.9);
+        }
+
+        .path {
+            background-color: #03a9f4; /* Cyan path */
+            color: white;
+            font-weight: 800;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- Log Area Styles --- */
+        #logArea {
+            flex-grow: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+
+        #logArea h3 {
+            margin-top: 0;
+            color: #00796b;
+        }
+
+        .log-step {
+            border-bottom: 1px dotted #eee;
+            padding: 5px 0;
+        }
+
+        .log-step strong {
+            color: #d81b60;
+        }
+
+        /* --- Info & Legend --- */
+        #infoArea {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border-left: 5px solid #4caf50;
+            border-radius: 5px;
+        }
+        .legend-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 0.9em;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 3px;
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Graph Traversal Challenge: DFS & BFS</h1>
+        
+        <div id="taskDisplay">Click Start Challenge to initialize the maze!</div>
+
+        <div id="visualContainer">
+            <div id="graphGrid">
+                </div>
+            
+            <div id="logArea">
+                <h3>Traversal Log (Step-by-Step Explanation)</h3>
+                <div id="logContent">
+                    <p style="color: #666;">Log will start here when a traversal begins...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="feedback" style="text-align: center; font-size: 1.1em; color: #333;">
+            <p><strong>Instructions:</strong> Select an algorithm to begin the visualization. Pay attention to the <strong>Traversal Log</strong> on the right to understand why each step is taken.</p>
+        </div>
+
+        <div class="action-controls">
+            <button onclick="startGame()" id="startBtn">Start Challenge</button>
+            <button onclick="runTraversal('DFS')" id="dfsBtn" disabled>Run DFS (Depth-First Search)</button>
+            <button onclick="runTraversal('BFS')" id="bfsBtn" disabled>Run BFS (Breadth-First Search)</button>
+            <button onclick="resetGame()" id="resetBtn" disabled>Reset Grid</button>
+        </div>
+        
+        <div id="infoArea">
+            <h3>Traversal Insights & Legend</h3>
+            <div class="legend-item"><span class="legend-color" style="background-color: #4caf50;"></span> Start (S) / Current Node</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #d32f2f;"></span> End (E)</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #78909c;"></span> Wall</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #ffecb3;"></span> Visited (Explored)</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: #03a9f4;"></span> Final Path</div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const ROWS = 4;
+        const COLS = 4;
+        const GRID_MAZE = [
+            ['S', 'W', 'W', 'N'],
+            ['N', 'N', 'N', 'N'],
+            ['W', 'N', 'W', 'N'],
+            ['N', 'N', 'N', 'E']
+        ]; // S=Start, E=End, W=Wall, N=Normal (path)
+
+        const START_POS = [0, 0];
+        const END_POS = [3, 3];
+        const TRAVERSAL_SPEED = 300; // ms per step for visualization
+
+        // --- DOM Elements ---
+        const graphGridEl = document.getElementById('graphGrid');
+        const taskDisplayEl = document.getElementById('taskDisplay');
+        const feedbackEl = document.getElementById('feedback');
+        const dfsBtn = document.getElementById('dfsBtn');
+        const bfsBtn = document.getElementById('bfsBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const startBtn = document.getElementById('startBtn');
+        const logContentEl = document.getElementById('logContent');
+        
+        // --- State Variables ---
+        let runningTraversal = false;
+        
+        // --- Utility Functions ---
+
+        function isValid(r, c) {
+            return r >= 0 && r < ROWS && c >= 0 && c < COLS && GRID_MAZE[r][c] !== 'W';
+        }
+        
+        function getCellElement(r, c) {
+            return document.getElementById(`cell-${r}-${c}`);
+        }
+
+        function resetGridStyles() {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cellEl = getCellElement(r, c);
+                    if (cellEl) {
+                        cellEl.classList.remove('visited', 'path', 'current-node');
+                        // Ensure Start and End cells keep their color/text
+                        const value = GRID_MAZE[r][c];
+                        if (value === 'S') cellEl.classList.add('start');
+                        if (value === 'E') cellEl.classList.add('end');
+                    }
+                }
+            }
+        }
+
+        function disableControlButtons(disabled) {
+            // Disables the traversal buttons, but keeps Start/Reset control separate
+            dfsBtn.disabled = disabled;
+            bfsBtn.disabled = disabled;
+        }
+
+        function logStep(message) {
+            const stepDiv = document.createElement('div');
+            stepDiv.classList.add('log-step');
+            stepDiv.innerHTML = message;
+            logContentEl.prepend(stepDiv); // Add to the top
+            logContentEl.scrollTop = 0;
+        }
+
+        function clearLog() {
+            logContentEl.innerHTML = '<p style="color: #666;">Log will start here when a traversal begins...</p>';
+        }
+
+        // --- Core Algorithm Functions ---
+
+        /**
+         * Finds a path using DFS (Stack-like pop) or BFS (Queue-like shift).
+         * Returns an object { path: array, visitedOrder: array }
+         */
+        function findPath(type) {
+            const visited = new Set();
+            const queueOrStack = [START_POS];
+            const parentMap = {}; 
+            const visitedOrder = [];
+            const detailedSteps = [];
+
+            const key = (r, c) => `${r},${c}`;
+            visited.add(key(START_POS[0], START_POS[1]));
+            
+            while (queueOrStack.length > 0) {
+                const [r, c] = type === 'DFS' ? queueOrStack.pop() : queueOrStack.shift(); 
+                const currentKey = key(r, c);
+                
+                visitedOrder.push([r, c]);
+
+                if (r === END_POS[0] && c === END_POS[1]) {
+                    detailedSteps.push([r, c, 'END', []]);
+                    let currKey = key(r, c);
+                    const finalPath = [];
+                    while(currKey) {
+                        const [pr, pc] = currKey.split(',').map(Number);
+                        if (finalPath.length === 0 || finalPath[0][0] !== pr || finalPath[0][1] !== pc) {
+                            finalPath.unshift([pr, pc]);
+                        }
+                        currKey = parentMap[currKey];
+                        if (pr === START_POS[0] && pc === START_POS[1]) break; 
+                    }
+                    return { path: finalPath, visitedOrder: visitedOrder, detailedSteps: detailedSteps };
+                }
+
+                const neighbors = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+                
+                if (type === 'DFS') {
+                     neighbors.sort(() => Math.random() - 0.5); 
+                }
+                
+                const pushedNeighbors = [];
+
+                for (const [nr, nc] of neighbors) {
+                    const neighborKey = key(nr, nc);
+                    if (isValid(nr, nc) && !visited.has(neighborKey)) {
+                        visited.add(neighborKey);
+                        parentMap[neighborKey] = currentKey;
+                        queueOrStack.push([nr, nc]);
+                        pushedNeighbors.push(`(${nr}, ${nc})`);
+                    }
+                }
+                
+                detailedSteps.push([r, c, type === 'DFS' ? 'POP' : 'SHIFT', pushedNeighbors]);
+            }
+            return { path: [], visitedOrder: visitedOrder, detailedSteps: detailedSteps }; 
+        }
+        
+        // --- Game Flow & Visualization ---
+
+        function renderInitialGrid() {
+            graphGridEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell');
+                    cell.id = `cell-${r}-${c}`;
+                    
+                    const value = GRID_MAZE[r][c];
+                    if (value === 'S') {
+                        cell.classList.add('start');
+                        cell.textContent = 'S';
+                    } else if (value === 'E') {
+                        cell.classList.add('end');
+                        cell.textContent = 'E';
+                    } else if (value === 'W') {
+                        cell.classList.add('wall');
+                    }
+                    
+                    graphGridEl.appendChild(cell);
+                }
+            }
+        }
+
+        async function runTraversal(type) {
+            if (runningTraversal) return;
+
+            resetGridStyles();
+            clearLog();
+            runningTraversal = true;
+            disableControlButtons(true);
+            resetBtn.disabled = true;
+
+            taskDisplayEl.textContent = `Running ${type} Traversal... Please Wait.`;
+            feedbackEl.innerHTML = `<p style="color: #00796b;">Visualization running. Watch the log to follow the logic.</p>`;
+
+            const result = findPath(type);
+            const detailedSteps = result.detailedSteps;
+            const finalPath = result.path;
+            
+            // 1. Animate Visited Order (Exploration)
+            for (let i = 0; i < detailedSteps.length; i++) {
+                const [r, c, action, pushedNeighbors] = detailedSteps[i];
+                const cellEl = getCellElement(r, c);
+                
+                // Clear previous current node highlight
+                const prevNode = document.querySelector('.current-node');
+                if (prevNode && !prevNode.classList.contains('start') && !prevNode.classList.contains('end')) {
+                    prevNode.classList.remove('current-node');
+                    prevNode.classList.add('visited');
+                }
+
+                if (action === 'END') {
+                    logStep(`GOAL REACHED! (${r}, ${c}).`);
+                    break;
+                }
+                
+                // Highlight current node
+                if (cellEl) {
+                    cellEl.classList.add('current-node');
+                    cellEl.classList.remove('visited');
+                }
+                
+                // --- Simplified Log ---
+                const structure = type === 'DFS' ? 'Stack' : 'Queue';
+                const actionVerb = type === 'DFS' ? 'Popped' : 'Shifted';
+                
+                let logMessage = `<strong>${i + 1}.</strong> [${structure} ${actionVerb} (${r}, ${c})]. `;
+                
+                if (pushedNeighbors.length > 0) {
+                    logMessage += `Added ${pushedNeighbors.length} neighbors.`;
+                } else {
+                    logMessage += `Dead end. Backtracking.`;
+                }
+                
+                logStep(logMessage);
+
+                await new Promise(resolve => setTimeout(resolve, TRAVERSAL_SPEED));
+            }
+            
+            // Clear the final current node highlight
+            const finalNode = document.querySelector('.current-node');
+            if (finalNode) finalNode.classList.remove('current-node');
+
+            // 2. Animate Final Path
+            if (finalPath.length > 0) {
+                logStep(`PATH RECONSTRUCTION: Tracing back using the Parent Map...`);
+
+                for (let i = 0; i < finalPath.length; i++) {
+                    const [r, c] = finalPath[i];
+                    const cellEl = getCellElement(r, c);
+                    if (cellEl) {
+                        cellEl.classList.remove('visited');
+                        cellEl.classList.add('path');
+                        // Simple log for path trace
+                        if (i > 0) logStep(`Path: (${finalPath[i-1][0]}, ${finalPath[i-1][1]}) -> (${r}, ${c}).`);
+                        await new Promise(resolve => setTimeout(resolve, TRAVERSAL_SPEED / 3));
+                    }
+                }
+                
+                // Final feedback and controls
+                if (type === 'BFS') {
+                    feedbackEl.innerHTML = `<p style="color: #d81b60;"><strong>BFS Found the Shortest Path!</strong> Length: ${finalPath.length - 1} edges.</p>`;
+                } else {
+                    feedbackEl.innerHTML = `<p style="color: #1e88e5;"><strong>DFS Found A Path!</strong> Length: ${finalPath.length - 1} edges. </p>`;
+                }
+                taskDisplayEl.textContent = `Traversal Complete: ${type} Path Found!`;
+
+            } else {
+                feedbackEl.innerHTML = `<p style="color: #dc3545;">Traversal completed. No path found!</p>`;
+                taskDisplayEl.textContent = `Traversal Complete: No Path Found.`;
+            }
+
+            runningTraversal = false;
+            startBtn.disabled = true;
+            dfsBtn.disabled = false;
+            bfsBtn.disabled = false;
+            resetBtn.disabled = false; // Enable reset button after completion
+        }
+
+        // NEW: Function to set the initial state when the page loads
+        function initializeUI() {
+            renderInitialGrid();
+            taskDisplayEl.textContent = `Click START CHALLENGE to begin maze traversal.`;
+            feedbackEl.innerHTML = `<p><strong>Instructions:</strong> Press START. Then, choose an algorithm to explore the maze.</p>`;
+            
+            // Set initial button state (Start is the action to take)
+            startBtn.disabled = false;
+            dfsBtn.disabled = true;
+            bfsBtn.disabled = true;
+            resetBtn.disabled = true;
+            clearLog();
+        }
+
+        function startGame() {
+            // This function runs when the user clicks 'Start Challenge'
+            clearLog();
+            renderInitialGrid(); 
+            taskDisplayEl.textContent = `CHALLENGE: Find a path from S to E! Run BFS (shortest) or DFS (deeper exploration).`;
+            feedbackEl.innerHTML = `<p>Choose an algorithm to begin the visualization. Check the **Traversal Log** to follow the logic.</p>`;
+            
+            // Disable Start, Enable Traversal buttons
+            startBtn.disabled = true;
+            dfsBtn.disabled = false;
+            bfsBtn.disabled = false;
+            resetBtn.disabled = false; // Enable reset now that the game has started
+        }
+        
+        function resetGame() {
+            resetGridStyles();
+            initializeUI(); // Resetting returns to the initial clickable 'Start' state
+        }
+
+        // Initialize UI: Start the game state as soon as the page loads
+        window.onload = function() {
+            initializeUI();
+        };
+    </script>
+</body>
+</html>

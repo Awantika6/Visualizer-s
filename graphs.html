@@ -1,0 +1,418 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Type Identifier Challenge</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; 
+            color: #333;
+            margin: 0;
+            padding: 15px; /* Reduced outer padding */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 25px; /* Reduced container padding */
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 800px; /* Slightly reduced max width */
+        }
+
+        h1 {
+            color: #ff6347; /* Tomato Red */
+            text-align: center;
+            border-bottom: 4px double #ff6347; 
+            padding-bottom: 10px; /* Reduced padding */
+            margin-bottom: 25px; /* Reduced margin */
+            font-size: 2.2em;
+            letter-spacing: 1px;
+        }
+
+        /* --- Task and Visualization Area --- */
+        #taskDisplay {
+            /* SIGNIFICANT REDUCTION: Reduced padding */
+            font-size: 1.2em; 
+            font-weight: 700;
+            padding: 10px; 
+            border-radius: 6px;
+            background-color: #ffc107; 
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px; /* Reduced margin */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        
+        #visualizationArea {
+            /* Reduced vertical padding */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 15px; 
+            border: 3px solid #1e90ff; 
+            background-color: #eaf5ff; 
+            border-radius: 10px;
+            margin-bottom: 15px; /* Reduced margin */
+        }
+        
+        #graphScenario {
+            /* Reduced padding and margin */
+            min-height: 100px; /* Minimized height */
+            width: 95%;
+            background-color: #ffffff; 
+            border: 1px solid #1e90ff;
+            border-radius: 6px;
+            padding: 15px 20px; 
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 10px; /* Reduced margin */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            line-height: 1.4;
+            color: #483d8b; 
+        }
+
+        /* --- Input Controls --- */
+        .question-group {
+            margin-bottom: 15px; /* Reduced margin */
+            border: 1px solid #ccc;
+            padding: 10px; /* Reduced padding */
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .question-group h3 {
+            color: #dc143c; 
+            margin-top: 0;
+            margin-bottom: 10px; /* Reduced margin */
+            border-bottom: 2px solid #f8d7da;
+            padding-bottom: 5px;
+            font-size: 1.3em;
+        }
+
+        .radio-options {
+            display: flex;
+            /* Reduced gap */
+            gap: 15px; 
+            justify-content: space-around;
+        }
+        
+        .radio-options label {
+            /* Reduced padding and width for compactness */
+            padding: 8px 15px;
+            width: 120px; 
+            text-align: center;
+            border: 3px solid #00bfff; 
+            border-radius: 20px; 
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            background-color: #e0ffff; 
+            color: #007bff; 
+        }
+
+        .radio-options input[type="radio"] {
+            display: none;
+        }
+
+        /* State when selected */
+        .radio-options input[type="radio"]:checked + label {
+            background-color: #00bfff; 
+            color: white;
+            border-color: #007fff;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+        }
+
+        /* --- Feedback and Action Buttons --- */
+        #feedback {
+            margin-top: 15px; /* Reduced margin */
+            padding: 10px; /* Reduced padding */
+            border-radius: 6px;
+            font-weight: 700;
+            text-align: center;
+            min-height: 30px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            font-size: 1em;
+        }
+
+        .action-controls {
+            /* SIGNIFICANT REDUCTION: Minimal top margin, reduced gap */
+            text-align: center;
+            margin-top: 15px; 
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Reduced gap between buttons */
+        }
+        
+        .action-controls button {
+            /* Reduced padding for smaller button size */
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        .action-controls button:hover:not(:disabled) {
+             transform: translateY(-1px);
+        }
+        
+        #startBtn { background-color: #32cd32; color: white; }
+        #submitBtn { background-color: #ff4500; color: white; }
+        #nextBtn { background-color: #1e90ff; color: white; }
+        
+        /* Disabled state styling */
+        .action-controls button:disabled {
+            background-color: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Graph Type Identifier Challenge</h1>
+        
+        <div id="taskDisplay">
+            Click START to begin classifying graph scenarios!
+        </div>
+
+        <div id="visualizationArea">
+            <div id="graphScenario">
+                <p>Welcome! This challenge tests your ability to identify the fundamental properties of a graph based on its real-world application or description.</p>
+            </div>
+            <p id="scenarioHint" style="font-size: 0.9em; color: #555;">(Look for keywords like 'one-way,' 'distance,' or 'relationship' to determine the type.)</p>
+        </div>
+        
+        <div class="question-group">
+            <h3>1. Direction Property</h3>
+            <div class="radio-options">
+                <input type="radio" id="direction-undirected" name="direction" value="Undirected">
+                <label for="direction-undirected">Undirected</label>
+                <input type="radio" id="direction-directed" name="direction" value="Directed">
+                <label for="direction-directed">Directed</label>
+            </div>
+        </div>
+        
+        <div class="question-group">
+            <h3>2. Weight Property</h3>
+            <div class="radio-options">
+                <input type="radio" id="weight-unweighted" name="weight" value="Unweighted">
+                <label for="weight-unweighted">Unweighted</label>
+                <input type="radio" id="weight-weighted" name="weight" value="Weighted">
+                <label for="weight-weighted">Weighted</label>
+            </div>
+        </div>
+
+        <div id="feedback" style="height: 30px;">
+            </div>
+
+        <div class="action-controls">
+            <button onclick="startGame()" id="startBtn">START CHALLENGE</button>
+            <button onclick="checkAnswer()" id="submitBtn" disabled>SUBMIT</button>
+            <button onclick="nextQuestion()" id="nextBtn" disabled>NEXT SCENARIO</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Game Data ---
+        const SCENARIOS = [
+            {
+                scenario: "Mapping major roads in a city where every street is two-way.",
+                correctDirection: "Undirected",
+                correctWeight: "Unweighted",
+                hint: "Two-way streets mean the connection works both ways."
+            },
+            {
+                scenario: "A list of prerequisites for university courses (Course A must be taken before Course B).",
+                correctDirection: "Directed",
+                correctWeight: "Unweighted",
+                hint: "Prerequisites impose a specific order or direction."
+            },
+            {
+                scenario: "A network of flights between airports, with each edge labeled by the cost (price) of the ticket.",
+                correctDirection: "Directed",
+                correctWeight: "Weighted",
+                hint: "Flights are often one-way, and the price represents the weight."
+            },
+            {
+                scenario: "A social media friendship network where users are connected, and all friendships are mutual.",
+                correctDirection: "Undirected",
+                correctWeight: "Unweighted",
+                hint: "Mutual friendships mean the connection has no direction."
+            },
+            {
+                scenario: "A delivery route network where edges are labeled by the delivery time in minutes.",
+                correctDirection: "Directed",
+                correctWeight: "Weighted",
+                hint: "Time is the weight, and delivery routes can vary in direction."
+            }
+        ];
+        
+        // --- State Variables ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        
+        // --- DOM Elements ---
+        const taskDisplay = document.getElementById('taskDisplay');
+        const scenarioDiv = document.getElementById('graphScenario');
+        const feedbackDiv = document.getElementById('feedback');
+        const startBtn = document.getElementById('startBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const directionRadios = document.querySelectorAll('input[name="direction"]');
+        const weightRadios = document.querySelectorAll('input[name="weight"]');
+        
+        // --- Functions ---
+        
+        function updateUI() {
+            if (currentQuestionIndex < SCENARIOS.length) {
+                const q = SCENARIOS[currentQuestionIndex];
+                taskDisplay.textContent = `Question ${currentQuestionIndex + 1} of ${SCENARIOS.length}: Identify the Graph Type`;
+                scenarioDiv.innerHTML = `<p>${q.scenario}</p>`;
+                
+                // Reset radios and styling
+                directionRadios.forEach(radio => {
+                    radio.checked = false;
+                    radio.nextElementSibling.style.borderColor = '#00bfff';
+                    radio.nextElementSibling.style.backgroundColor = '#e0ffff';
+                    radio.nextElementSibling.style.color = '#007bff';
+                });
+                weightRadios.forEach(radio => {
+                    radio.checked = false;
+                    radio.nextElementSibling.style.borderColor = '#00bfff';
+                    radio.nextElementSibling.style.backgroundColor = '#e0ffff';
+                    radio.nextElementSibling.style.color = '#007bff';
+                });
+                
+                // Reset feedback and enable submission
+                feedbackDiv.innerHTML = '';
+                feedbackDiv.style.backgroundColor = 'transparent';
+                submitBtn.disabled = false;
+                nextBtn.disabled = true;
+                startBtn.disabled = true;
+            } else {
+                endGame();
+            }
+        }
+        
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            updateUI();
+        }
+
+        function checkAnswer() {
+            submitBtn.disabled = true;
+            
+            const q = SCENARIOS[currentQuestionIndex];
+            
+            const selectedDirection = document.querySelector('input[name="direction"]:checked')?.value;
+            const selectedWeight = document.querySelector('input[name="weight"]:checked')?.value;
+
+            // Check if all options are selected
+            if (!selectedDirection || !selectedWeight) {
+                feedbackDiv.style.backgroundColor = '#f8d7da';
+                feedbackDiv.style.color = '#721c24';
+                feedbackDiv.innerHTML = 'Please select both Direction and Weight before submitting.';
+                submitBtn.disabled = false;
+                return;
+            }
+
+
+            let correctDirection = selectedDirection === q.correctDirection;
+            let correctWeight = selectedWeight === q.correctWeight;
+
+            let totalCorrect = 0;
+
+            // Handle Direction Feedback
+            const dirLabel = document.getElementById(`direction-${selectedDirection.toLowerCase()}`).nextElementSibling;
+            if (correctDirection) {
+                totalCorrect++;
+                dirLabel.style.borderColor = 'green';
+                dirLabel.style.backgroundColor = '#d4edda'; // Light green for correct selection
+                dirLabel.style.color = '#155724';
+            } else {
+                dirLabel.style.borderColor = 'red';
+                dirLabel.style.backgroundColor = '#f8d7da'; // Light red for incorrect selection
+                dirLabel.style.color = '#721c24';
+                
+                // Highlight the correct answer
+                document.getElementById(`direction-${q.correctDirection.toLowerCase()}`).nextElementSibling.style.backgroundColor = '#b8daff'; // Light Blue for Correct Answer
+                document.getElementById(`direction-${q.correctDirection.toLowerCase()}`).nextElementSibling.style.color = '#004085';
+
+            }
+            
+            // Handle Weight Feedback
+            const weightLabel = document.getElementById(`weight-${selectedWeight.toLowerCase()}`).nextElementSibling;
+            if (correctWeight) {
+                totalCorrect++;
+                weightLabel.style.borderColor = 'green';
+                weightLabel.style.backgroundColor = '#d4edda'; // Light green for correct selection
+                weightLabel.style.color = '#155724';
+            } else {
+                weightLabel.style.borderColor = 'red';
+                weightLabel.style.backgroundColor = '#f8d7da'; // Light red for incorrect selection
+                weightLabel.style.color = '#721c24';
+
+                 // Highlight the correct answer
+                document.getElementById(`weight-${q.correctWeight.toLowerCase()}`).nextElementSibling.style.backgroundColor = '#b8daff'; // Light Blue for Correct Answer
+                document.getElementById(`weight-${q.correctWeight.toLowerCase()}`).nextElementSibling.style.color = '#004085';
+            }
+            
+
+            if (totalCorrect === 2) {
+                score++;
+                feedbackDiv.style.backgroundColor = '#d4edda';
+                feedbackDiv.style.color = '#155724';
+                feedbackDiv.innerHTML = 'SUCCESS! Both properties identified correctly.';
+            } else {
+                feedbackDiv.style.backgroundColor = '#f8d7da';
+                feedbackDiv.style.color = '#721c24';
+                feedbackDiv.innerHTML = `INCORRECT. You missed ${2 - totalCorrect} property(s). The correct type is highlighted in blue.`;
+            }
+
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            updateUI();
+        }
+
+        function endGame() {
+            taskDisplay.textContent = `CHALLENGE COMPLETE!`;
+            scenarioDiv.innerHTML = `<p>You finished the challenge. Your final score is <strong>${score} out of ${SCENARIOS.length}</strong>. <br>Click START CHALLENGE to play again.</p>`;
+            feedbackDiv.style.backgroundColor = '#e6ffed';
+            feedbackDiv.style.color = '#0056b3';
+            feedbackDiv.innerHTML = 'Great job classifying graphs!';
+            startBtn.disabled = false;
+            submitBtn.disabled = true;
+            nextBtn.disabled = true;
+        }
+
+        // Initialize
+        window.onload = function() {
+            // Set initial state: Start button clickable, others disabled
+            startBtn.disabled = false;
+            submitBtn.disabled = true;
+            nextBtn.disabled = true;
+        };
+    </script>
+</body>
+</html>
