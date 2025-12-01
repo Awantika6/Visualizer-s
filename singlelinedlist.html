@@ -1,0 +1,730 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singly Linked List </title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            color: #17a2b8;
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+
+        /* --- Description Box Styling --- */
+        .description-box {
+            background-color: #e6f2ff;
+            border-left: 5px solid #17a2b8;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .description-box h5 {
+            color: #17a2b8;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .description-box p, .description-box ul {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        .description-box ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding-left: 0;
+        }
+
+        /* --- Task & Feedback --- */
+        #taskDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+
+        #feedback {
+            min-height: 40px;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6fb; }
+        .feedback-info { background-color: #e6f2ff; color: #004085; border: 1px solid #b8daff; }
+
+        /* --- Linked List Visualization --- */
+        #linkedListVisualization {
+            min-height: 120px;
+            margin: 30px auto;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Start from the left */
+            flex-wrap: nowrap; /* Keep nodes on a single line */
+            overflow-x: auto; /* Allow scrolling if list is too long */
+            position: relative;
+            width: 100%;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #fdfdfd;
+        }
+
+        .node-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .ll-node {
+            background-color: #ffffff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1; /* Ensure node is above arrow */
+            min-width: 60px;
+        }
+        .ll-node.head-node {
+            border-color: #28a745;
+            box-shadow: 0 0 8px #28a745;
+        }
+        .ll-node.highlight-target {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        .ll-node.highlight-new {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+
+        .node-value {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .node-pointer {
+            font-size: 0.7em;
+            color: #6c757d;
+            margin-top: 3px;
+        }
+
+        .arrow {
+            width: 40px;
+            height: 2px;
+            background-color: #007bff;
+            position: relative;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px; /* Adjust to center point of the arrow line */
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 8px solid #007bff;
+        }
+        .null-pointer {
+            font-size: 0.8em;
+            color: #dc3545;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        
+        #headPointerLabel {
+            position: absolute;
+            top: 0px; /* Position above the first node */
+            left: 10px;
+            font-weight: bold;
+            color: #28a745;
+            font-size: 0.9em;
+            z-index: 0;
+        }
+
+        /* --- Controls --- */
+        .quiz-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #f8fbfd;
+        }
+        .quiz-controls label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .quiz-controls input[type="number"],
+        .quiz-controls select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 0.9em;
+            width: 100px;
+            margin-right: 10px;
+        }
+        .quiz-controls button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.95em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .quiz-controls button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .quiz-controls button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 10px;
+        }
+        .control-group.buttons-row {
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        #insertBtn { background-color: #007bff; color: white; }
+        #deleteBtn { background-color: #dc3545; color: white; }
+        #startQuizBtn { background-color: #28a745; color: white; }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Singly Linked List </h1>
+        
+        <div class="description-box">
+            <h5>Singly Linked List </h5>
+            <p>A Singly Linked List is a collection of nodes arranged in a linear sequence.</p>
+            <ul>
+                <li>Each node holds two things: a piece of Data and a Pointer to the next node.</li>
+                <li>The last node's pointer points to NULL (meaning no next node).</li>
+                <li>The 'Head' pointer always points to the first node in the list.</li>
+                <li>Unlike arrays, elements are not stored in adjacent memory locations. Instead, nodes are linked together.</li>
+                <li>Adding or removing nodes is efficient once the position is found.</li>
+            </ul>
+        </div>
+
+        <div id="taskDisplay">Click 'Start Task' to begin!</div>
+
+        <div id="linkedListVisualization">
+            <span id="headPointerLabel">HEAD</span>
+        </div>
+
+        <div id="feedback" class="feedback-info">
+            Instructions: Get ready to perform list operations.
+        </div>
+        
+        <div class="quiz-controls" id="operationControls">
+            <div class="control-group">
+                <label for="insertValue">Insert Value:</label>
+                <input type="number" id="insertValue" placeholder="e.g., 25" disabled>
+                
+                <label for="insertAfterNodeValue">After Node:</label>
+                <select id="insertAfterNodeValue" disabled></select>
+                <p> (Choose "START" for beginning)</p>
+            </div>
+            
+            <div class="control-group">
+                <label for="deleteValue">Delete Value:</label>
+                <input type="number" id="deleteValue" placeholder="e.g., 10" disabled>
+            </div>
+
+            <div class="control-group buttons-row">
+                <button onclick="handleInsertAttempt()" id="insertBtn" disabled>Perform Insert</button>
+                <button onclick="handleDeleteAttempt()" id="deleteBtn" disabled>Perform Delete</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="startGame()" id="startQuizBtn">Start Task</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const QUIZ_STEPS = 5;
+        const MIN_NODE_VALUE = 1;
+        const MAX_NODE_VALUE = 99;
+        const MAX_LIST_LENGTH = 7; // Keep it manageable for visualization
+
+        // --- Data Structure: Node Class ---
+        class Node {
+            constructor(data) {
+                this.data = data;
+                this.next = null; // Pointer to the next node
+            }
+        }
+
+        // --- Data Structure: SinglyLinkedList Class ---
+        class SinglyLinkedList {
+            constructor() {
+                this.head = null; // The start of the list
+                this.size = 0;
+            }
+
+            // Adds a node to the end of the list
+            add(data) {
+                const newNode = new Node(data);
+                if (!this.head) {
+                    this.head = newNode;
+                } else {
+                    let current = this.head;
+                    while (current.next) {
+                        current = current.next;
+                    }
+                    current.next = newNode;
+                }
+                this.size++;
+            }
+
+            // Inserts a node after a specific data value
+            insertAfter(prevData, newData) {
+                // Special case: insert at the beginning (before head)
+                if (prevData === 'START') {
+                    const newNode = new Node(newData);
+                    newNode.next = this.head;
+                    this.head = newNode;
+                    this.size++;
+                    return true;
+                }
+
+                let current = this.head;
+                while (current && current.data !== prevData) {
+                    current = current.next;
+                }
+
+                if (current) {
+                    const newNode = new Node(newData);
+                    newNode.next = current.next;
+                    current.next = newNode;
+                    this.size++;
+                    return true;
+                }
+                return false; // prevData not found
+            }
+
+            // Deletes a node with specific data value
+            delete(data) {
+                if (!this.head) return false;
+
+                // If head node is the one to be deleted
+                if (this.head.data === data) {
+                    this.head = this.head.next;
+                    this.size--;
+                    return true;
+                }
+
+                let current = this.head;
+                let previous = null;
+                while (current && current.data !== data) {
+                    previous = current;
+                    current = current.next;
+                }
+
+                if (current) { // Node found
+                    previous.next = current.next;
+                    this.size--;
+                    return true;
+                }
+                return false; // Data not found
+            }
+
+            // Checks if a value exists in the list
+            contains(data) {
+                let current = this.head;
+                while (current) {
+                    if (current.data === data) return true;
+                    current = current.next;
+                }
+                return false;
+            }
+
+            // Gets all data values as an array
+            toArray() {
+                const arr = [];
+                let current = this.head;
+                while (current) {
+                    arr.push(current.data);
+                    current = current.next;
+                }
+                return arr;
+            }
+        }
+
+        // --- State Variables ---
+        let gameActive = false;
+        let stepCounter = 0;
+        let currentList = null;
+        let currentTask = {}; // { type: 'insert'/'delete', value: X, prevValue: Y (for insert) }
+        let availableNodeValues = []; // For insertAfter dropdown
+
+        // --- DOM Elements ---
+        const taskDisplay = document.getElementById('taskDisplay');
+        const feedbackEl = document.getElementById('feedback');
+        const listVisualizationEl = document.getElementById('linkedListVisualization');
+        const headPointerLabel = document.getElementById('headPointerLabel');
+
+        const insertValueInput = document.getElementById('insertValue');
+        const insertAfterNodeSelect = document.getElementById('insertAfterNodeValue');
+        const deleteValueInput = document.getElementById('deleteValue');
+        const insertBtn = document.getElementById('insertBtn');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const startQuizBtn = document.getElementById('startQuizBtn');
+
+        // --- Utility Functions ---
+
+        function generateRandomUniqueValues(count, min, max, exclude = []) {
+            const values = new Set(exclude);
+            while (values.size < count + exclude.length) {
+                values.add(Math.floor(Math.random() * (max - min + 1)) + min);
+            }
+            return Array.from(values).filter(v => !exclude.includes(v)).slice(0, count);
+        }
+
+        function createRandomList() {
+            const list = new SinglyLinkedList();
+            const initialLength = Math.floor(Math.random() * 3) + 3; // 3 to 5 nodes
+            const values = generateRandomUniqueValues(initialLength, MIN_NODE_VALUE, MAX_NODE_VALUE);
+            values.sort((a, b) => a - b); // Keep it sorted for easier visual tracking, though not required for LL
+            values.forEach(val => list.add(val));
+            return list;
+        }
+
+        function generateNewTask() {
+            const listArr = currentList.toArray();
+            const taskType = Math.random() < 0.5 ? 'insert' : 'delete'; // 50/50 chance for insert/delete
+
+            if (taskType === 'insert' || listArr.length === 0) {
+                // Ensure list isn't too long before inserting
+                if (currentList.size >= MAX_LIST_LENGTH) {
+                    // If too long, force a delete task or reset
+                    if (listArr.length > 1) { // Can't delete if only one node
+                        return generateNewTaskOfType('delete');
+                    } else { // Only one node and max length, let's just make a small list and try again
+                        currentList = createRandomList();
+                        return generateNewTask();
+                    }
+                }
+                return generateNewTaskOfType('insert');
+            } else { // Delete task
+                // Ensure list isn't too short to delete
+                if (listArr.length <= 1) {
+                    return generateNewTaskOfType('insert');
+                }
+                return generateNewTaskOfType('delete');
+            }
+        }
+
+        function generateNewTaskOfType(type) {
+            const listArr = currentList.toArray();
+            if (type === 'insert') {
+                let newValue;
+                do {
+                    newValue = Math.floor(Math.random() * (MAX_NODE_VALUE - MIN_NODE_VALUE + 1)) + MIN_NODE_VALUE;
+                } while (currentList.contains(newValue)); // Ensure new value is unique
+
+                // Determine previous node value for insertion
+                let prevValue;
+                if (listArr.length === 0 || Math.random() < 0.2) { // 20% chance to insert at the beginning
+                    prevValue = 'START';
+                } else {
+                    const randomIndex = Math.floor(Math.random() * listArr.length);
+                    prevValue = listArr[randomIndex];
+                }
+                return { type: 'insert', value: newValue, prevValue: prevValue };
+
+            } else { // type === 'delete'
+                if (listArr.length === 0) { // Cannot delete from empty list, force insert
+                    return generateNewTaskOfType('insert');
+                }
+                const randomIndex = Math.floor(Math.random() * listArr.length);
+                const deleteValue = listArr[randomIndex];
+                return { type: 'delete', value: deleteValue };
+            }
+        }
+
+        // --- Visualization Functions ---
+
+        function drawLinkedList() {
+            listVisualizationEl.innerHTML = ''; // Clear previous drawing
+            listVisualizationEl.appendChild(headPointerLabel); // Re-add head label
+
+            if (!currentList || !currentList.head) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.margin = 'auto';
+                emptyMsg.style.fontSize = '1.1em';
+                emptyMsg.style.color = '#888';
+                emptyMsg.innerText = 'List is empty. Add nodes to begin.';
+                listVisualizationEl.appendChild(emptyMsg);
+                headPointerLabel.style.display = 'none';
+                return;
+            }
+
+            headPointerLabel.style.display = 'block';
+
+            let current = currentList.head;
+            while (current) {
+                const nodeWrapper = document.createElement('div');
+                nodeWrapper.classList.add('node-wrapper');
+
+                const nodeDiv = document.createElement('div');
+                nodeDiv.classList.add('ll-node');
+                nodeDiv.dataset.value = current.data; // Store value for easy lookup
+
+                if (current === currentList.head) {
+                    nodeDiv.classList.add('head-node');
+                }
+                
+                // Highlight target node for current task
+                if (currentTask.type === 'delete' && currentTask.value === current.data) {
+                    nodeDiv.classList.add('highlight-target');
+                }
+
+                const valueSpan = document.createElement('span');
+                valueSpan.classList.add('node-value');
+                valueSpan.innerText = current.data;
+
+                const pointerSpan = document.createElement('span');
+                pointerSpan.classList.add('node-pointer');
+                pointerSpan.innerText = current.next ? `next: ${current.next.data}` : 'next: NULL';
+
+                nodeDiv.appendChild(valueSpan);
+                nodeDiv.appendChild(pointerSpan);
+                nodeWrapper.appendChild(nodeDiv);
+
+                if (current.next) {
+                    const arrowDiv = document.createElement('div');
+                    arrowDiv.classList.add('arrow');
+                    nodeWrapper.appendChild(arrowDiv);
+                } else {
+                    const nullText = document.createElement('span');
+                    nullText.classList.add('null-pointer');
+                    nullText.innerText = 'NULL';
+                    nodeWrapper.appendChild(nullText);
+                }
+
+                listVisualizationEl.appendChild(nodeWrapper);
+                current = current.next;
+            }
+        }
+
+        // --- Game Flow ---
+
+        function startGame() {
+            gameActive = true;
+            stepCounter = 0;
+            currentList = createRandomList();
+            setControlsEnabled(true);
+            nextStep();
+            startQuizBtn.disabled = true;
+        }
+
+        function nextStep() {
+            if (!gameActive) return;
+
+            stepCounter++;
+            if (stepCounter > QUIZ_STEPS) {
+                endGame();
+                return;
+            }
+
+            currentTask = generateNewTask();
+            drawLinkedList();
+            updateTaskDisplay();
+            setFeedback('info', 'Perform the operation shown in the task display.');
+            populateInsertAfterOptions();
+        }
+
+        function endGame() {
+            gameActive = false;
+            setControlsEnabled(false);
+            taskDisplay.innerText = `TASK COMPLETE!`;
+            setFeedback('success', `You completed ${QUIZ_STEPS} tasks. Click Start Quiz for a new challenge.`);
+            startQuizBtn.disabled = false;
+        }
+
+        function updateTaskDisplay() {
+            if (currentTask.type === 'insert') {
+                if (currentTask.prevValue === 'START') {
+                    taskDisplay.innerHTML = `TASK ${stepCounter}/${QUIZ_STEPS}: Insert new node with value ${currentTask.value} at the BEGINNING of the list.`;
+                } else {
+                    taskDisplay.innerHTML = `TASK ${stepCounter}/${QUIZ_STEPS}: Insert new node with value ${currentTask.value} AFTER node with value ${currentTask.prevValue}.`;
+                }
+                // Activate insert controls, deactivate delete controls
+                insertValueInput.value = '';
+                insertValueInput.disabled = false;
+                insertAfterNodeSelect.disabled = false;
+                insertAfterNodeSelect.value = currentTask.prevValue; // Pre-select correct option
+                insertBtn.disabled = false;
+
+                deleteValueInput.value = '';
+                deleteValueInput.disabled = true;
+                deleteBtn.disabled = true;
+
+            } else if (currentTask.type === 'delete') {
+                taskDisplay.innerHTML = `TASK ${stepCounter}/${QUIZ_STEPS}: Delete node with value ${currentTask.value}.`;
+                // Activate delete controls, deactivate insert controls
+                deleteValueInput.value = '';
+                deleteValueInput.disabled = false;
+                deleteBtn.disabled = false;
+
+                insertValueInput.value = '';
+                insertAfterNodeSelect.innerHTML = ''; // Clear dropdown for insert
+                insertValueInput.disabled = true;
+                insertAfterNodeSelect.disabled = true;
+                insertBtn.disabled = true;
+            }
+        }
+
+        function setControlsEnabled(enabled) {
+            insertValueInput.disabled = !enabled;
+            insertAfterNodeSelect.disabled = !enabled;
+            deleteValueInput.disabled = !enabled;
+            insertBtn.disabled = !enabled;
+            deleteBtn.disabled = !enabled;
+        }
+        
+        function populateInsertAfterOptions() {
+            insertAfterNodeSelect.innerHTML = ''; // Clear previous options
+            const startOption = document.createElement('option');
+            startOption.value = 'START';
+            startOption.innerText = 'START (Beginning)';
+            insertAfterNodeSelect.appendChild(startOption);
+
+            currentList.toArray().forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.innerText = value;
+                insertAfterNodeSelect.appendChild(option);
+            });
+
+            // Pre-select the correct answer if it's an insert task
+            if (currentTask.type === 'insert' && currentTask.prevValue) {
+                insertAfterNodeSelect.value = currentTask.prevValue;
+            }
+        }
+
+
+        // --- Answer Logic ---
+
+        function handleInsertAttempt() {
+            const enteredValue = parseInt(insertValueInput.value);
+            const selectedPrevValue = insertAfterNodeSelect.value; // Will be 'START' or a number
+
+            if (isNaN(enteredValue)) {
+                setFeedback('error', 'Please enter a valid number for the new node value.');
+                return;
+            }
+
+            if (currentTask.type !== 'insert' || enteredValue !== currentTask.value || selectedPrevValue !== currentTask.prevValue.toString()) {
+                setFeedback('error', `Incorrect operation. You should be inserting value ${currentTask.value} after node ${currentTask.prevValue}.`);
+                return;
+            }
+
+            // Perform the correct insert operation
+            currentList.insertAfter(currentTask.prevValue, currentTask.value);
+            drawLinkedList();
+            setFeedback('success', 'Correct! Node inserted successfully. Advancing to next task...');
+            setControlsEnabled(false);
+            setTimeout(nextStep, 1500);
+        }
+
+        function handleDeleteAttempt() {
+            const enteredValue = parseInt(deleteValueInput.value);
+
+            if (isNaN(enteredValue)) {
+                setFeedback('error', 'Please enter a valid number for the node to delete.');
+                return;
+            }
+
+            if (currentTask.type !== 'delete' || enteredValue !== currentTask.value) {
+                setFeedback('error', `Incorrect operation. You should be deleting node with value ${currentTask.value}.`);
+                return;
+            }
+
+            // Perform the correct delete operation
+            const deleted = currentList.delete(currentTask.value);
+            if (deleted) {
+                drawLinkedList();
+                setFeedback('success', 'Correct! Node deleted successfully. Advancing to next task...');
+                setControlsEnabled(false);
+                setTimeout(nextStep, 1500);
+            } else {
+                setFeedback('error', 'Something went wrong, the node was not found. Please try again.');
+            }
+        }
+
+        function setFeedback(type, message) {
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.className = '';
+            feedbackEl.classList.add(`feedback-${type}`);
+            feedbackEl.innerText = message;
+        }
+
+        // --- Initial Setup ---
+        window.onload = function() {
+            setControlsEnabled(false);
+            setFeedback('info', 'Click "Start Task" to begin your Linked List challenge!');
+            drawLinkedList(); // Draw an empty list initially
+        };
+
+        window.addEventListener('resize', () => {
+            drawLinkedList(); // Redraw on resize to maintain layout
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Binary Search Concept </title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 900px;
+        }
+
+        h1 {
+            color: #17a2b8; /* Info blue */
+            text-align: center;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.8em; 
+        }
+
+        /* --- Task & Feedback --- */
+        #taskDisplay {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
+        }
+
+        #feedback {
+            min-height: 40px;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1em; 
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6fb; }
+        .feedback-info { background-color: #e6f2ff; color: #004085; border: 1px solid #b8daff; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* --- Array Visualization Layout --- */
+        #arrayVisualization {
+            height: 150px;
+            width: 100%;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        /* Container for the array elements (used for reliable centering) */
+        #arrayContainerFlex {
+            display: flex;
+            position: absolute;
+            top: 25px; 
+        }
+
+        .array-index {
+            position: absolute;
+            top: 5px; 
+            color: #6c757d;
+            font-size: 0.8em;
+            width: 50px; 
+            text-align: center;
+        }
+
+        .array-cell {
+            /* Width set dynamically in JS */
+            height: 50px;
+            border: 2px solid #007bff;
+            background-color: #f0f8ff;
+            display: flex;
+            align-items: flex-start; 
+            padding-top: 5px; 
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .highlight-mid { 
+            border-color: #ffc107 !important; 
+            background-color: #fff3cd !important; 
+            box-shadow: 0 0 8px #ffc107; 
+        }
+        .highlight-search-space { background-color: #e2f0ff; }
+        
+        /* Pointers */
+        .pointer {
+            position: absolute;
+            font-size: 0.85em; 
+            font-weight: bold;
+            text-align: center;
+            width: 50px; 
+        }
+        .pointer-low { 
+            color: #dc3545; 
+            top: 80px; 
+        } 
+        .pointer-high { 
+            color: #007bff; 
+            top: 80px; 
+        } 
+        .pointer-mid { 
+            color: #ffc107; 
+            top: 30px; 
+        } 
+        
+        /* Button styles for pointer adjustments */
+        #adjustmentControls button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1.0em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #lowAdjustBtn {
+            background-color: #dc3545; /* Red for moving Low */
+            color: white;
+        }
+        #highAdjustBtn {
+            background-color: #007bff; /* Blue for moving High */
+            color: white;
+        }
+        #lowAdjustBtn:hover:not(:disabled) { background-color: #a71d2a; }
+        #highAdjustBtn:hover:not(:disabled) { background-color: #0056b3; }
+        #adjustmentControls button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        
+        /* Definition Box Styling */
+        .definition-box {
+            background-color: #e6f2ff;
+            border-left: 5px solid #17a2b8;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .definition-box h5 {
+            color: #17a2b8;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .definition-box ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding-left: 0;
+            font-size: 0.9em;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Binary Search </h1>
+        
+        <div class="definition-box">
+            <h5>Binary Search Theory</h5>
+            <ul>
+                <li>Requires a sorted array and uses Divide and Conquer.</li>
+                <li>MID is the pivot. mid = floor (low + high) / 2.</li>
+                <li>If Target is less than A mid, discard the right half. Set high = mid - 1.</li>
+                <li>If Target is greater than A mid, discard the left half. Set low = mid + 1.</li>
+            </ul>
+        </div>
+
+        <div id="taskDisplay">Click 'Start Task' to begin!</div>
+
+        <div id="arrayVisualization">
+            </div>
+
+        <div id="feedback" class="feedback-info">
+            Instructions: Analyze the Target vs Mid comparison, then choose which pointer (low or high) must be adjusted.
+        </div>
+        
+        <div class="controls" id="adjustmentControls">
+            <button onclick="checkAnswer('LOW')" id="lowAdjustBtn" disabled>
+                Target > Mid: Set low = mid + 1
+            </button>
+            <button onclick="checkAnswer('HIGH')" id="highAdjustBtn" disabled>
+                Target < Mid: Set high = mid - 1
+            </button>
+        </div>
+
+        <div id="mainControls" class="controls">
+            <button onclick="startGame()" style="background-color: #28a745;">Start Task</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Configuration & Constants ---
+        const CELL_BASE_WIDTH = 50; 
+        const QUIZ_STEPS = 5; 
+        
+        // --- State ---
+        let gameActive = false;
+        let stepCounter = 0;
+        let targetValue = 0;
+        let arrayData = [];
+        let lowIndex = 0;
+        let highIndex = 0;
+        let currentMid = -1;
+        let expectedAdjustment = ''; 
+        let actualCellWidth = 0; 
+        let arrayStartLeft = 0; 
+
+        // --- DOM Elements ---
+        const visualizationEl = document.getElementById('arrayVisualization');
+
+        // --- Utility Functions ---
+        
+        function calculateMid(low, high) {
+            return Math.floor((low + high) / 2);
+        }
+
+        function generateRandomQuiz() {
+            const length = Math.floor(Math.random() * 4) + 8; 
+            arrayData = [];
+            let current = Math.floor(Math.random() * 10) + 1;
+            for (let i = 0; i < length; i++) {
+                arrayData.push(current);
+                current += Math.floor(Math.random() * 3) + 2; 
+            }
+
+            lowIndex = 0;
+            highIndex = arrayData.length - 1;
+            stepCounter = 0;
+
+            let midIndex = calculateMid(lowIndex, highIndex);
+            
+            if (Math.random() > 0.5) {
+                targetValue = arrayData[midIndex] + Math.floor(Math.random() * 5) + 1;
+            } else {
+                targetValue = arrayData[midIndex] - Math.floor(Math.random() * 5) - 1;
+            }
+            
+            if (targetValue < arrayData[0]) targetValue = arrayData[0] + 1;
+            if (targetValue > arrayData[arrayData.length - 1]) targetValue = arrayData[arrayData.length - 1] - 1;
+
+            if (targetValue === arrayData[midIndex]) generateRandomQuiz(); 
+        }
+        
+        function drawVisualization() {
+            visualizationEl.innerHTML = '';
+            
+            // 1. Calculate dimensions for centering
+            actualCellWidth = visualizationEl.clientWidth / arrayData.length;
+            
+            const totalArrayWidth = actualCellWidth * arrayData.length;
+            // Calculate the exact left margin needed to center the block
+            arrayStartLeft = (visualizationEl.clientWidth - totalArrayWidth) / 2;
+            if (arrayStartLeft < 0) arrayStartLeft = 0; 
+
+            // 2. Create the array container (Flexbox for internal cells)
+            const arrayContainer = document.createElement('div');
+            arrayContainer.id = 'arrayContainerFlex'; 
+            arrayContainer.style.width = `${totalArrayWidth}px`; 
+            arrayContainer.style.left = `${arrayStartLeft}px`; // Apply calculated offset to center
+
+            const cellHeight = 50;
+
+            arrayData.forEach((value, index) => {
+                const cell = document.createElement('div');
+                cell.classList.add('array-cell');
+                cell.innerText = value;
+                cell.dataset.index = index;
+
+                cell.style.width = `${actualCellWidth}px`;
+                cell.style.height = `${cellHeight}px`;
+
+                // 3. Add Index Labels (Absolute positioning)
+                const indexLabel = document.createElement('div');
+                indexLabel.classList.add('array-index');
+                indexLabel.innerText = index;
+                indexLabel.style.width = cell.style.width;
+                indexLabel.style.left = `${arrayStartLeft + (index * actualCellWidth)}px`;
+                
+                // Highlight states
+                if (index >= lowIndex && index <= highIndex) {
+                    cell.classList.add('highlight-search-space');
+                } else {
+                    cell.style.backgroundColor = '#ddd'; 
+                }
+
+                if (index === currentMid) {
+                    cell.classList.add('highlight-mid');
+                }
+                
+                arrayContainer.appendChild(cell);
+                visualizationEl.appendChild(indexLabel); 
+            });
+            
+            // 4. Apply array container's top offset and append
+            arrayContainer.style.top = '25px'; 
+            visualizationEl.appendChild(arrayContainer);
+            
+            
+            // 5. Draw Pointers (Absolute positioning)
+            drawPointer('low', lowIndex);
+            drawPointer('high', highIndex);
+            
+            if (currentMid >= lowIndex && currentMid <= highIndex) {
+                 drawPointer('mid', currentMid, 'MID');
+            }
+        }
+        
+        function drawPointer(type, index, label = null) {
+            const visualizationEl = document.getElementById('arrayVisualization');
+            const pointer = document.createElement('div');
+            pointer.classList.add('pointer', `pointer-${type}`);
+            
+            // Calculate center of cell
+            const centerOffset = (actualCellWidth / 2) - (CELL_BASE_WIDTH / 2); 
+            
+            // Calculate absolute horizontal position: Array Start + Cell Position + Center Offset
+            pointer.style.left = `${arrayStartLeft + (index * actualCellWidth) + centerOffset}px`; 
+            
+            let pointerLabel = label || type.toUpperCase();
+            
+            pointer.innerHTML = `${pointerLabel}`; 
+            
+            if (type === 'low') pointer.innerHTML += ' (L)';
+            if (type === 'high') pointer.innerHTML += ' (H)';
+            
+            visualizationEl.appendChild(pointer);
+        }
+
+        // --- Game Flow ---
+
+        function startGame() {
+            gameActive = true;
+            generateRandomQuiz();
+            nextStep();
+        }
+        
+        function nextStep() {
+            if (!gameActive) return;
+
+            stepCounter++;
+            
+            const taskDisplay = document.getElementById('taskDisplay');
+            const feedbackEl = document.getElementById('feedback');
+            const lowAdjustBtn = document.getElementById('lowAdjustBtn');
+            const highAdjustBtn = document.getElementById('highAdjustBtn');
+
+            if (lowIndex > highIndex || stepCounter > QUIZ_STEPS) {
+                endGame();
+                return;
+            }
+            
+            currentMid = calculateMid(lowIndex, highIndex);
+            const midValue = arrayData[currentMid];
+
+            if (targetValue === midValue) {
+                endGame(true, currentMid); 
+                return;
+            } 
+            
+            if (targetValue > midValue) {
+                expectedAdjustment = 'LOW'; 
+            } else { 
+                expectedAdjustment = 'HIGH';
+            }
+
+            drawVisualization();
+            
+            // Task Display without special characters
+            taskDisplay.innerHTML = `TASK ${stepCounter}/${QUIZ_STEPS}: Target = ${targetValue}. Mid Value = ${midValue} at Index ${currentMid}.`;
+            
+            // Feedback without special characters
+            feedbackEl.innerHTML = `Comparison: Target ${targetValue} versus Mid ${midValue}. Since Target ${expectedAdjustment === 'LOW' ? 'is greater than' : 'is less than'} Mid, choose the correct pointer adjustment below.`;
+            lowAdjustBtn.disabled = false;
+            highAdjustBtn.disabled = false;
+        }
+        
+        function endGame(found = false, index = -1) {
+            gameActive = false;
+            document.getElementById('lowAdjustBtn').disabled = true;
+            document.getElementById('highAdjustBtn').disabled = true;
+
+            drawVisualization(); 
+
+            if (found) {
+                document.getElementById('taskDisplay').innerHTML = `FOUND!`;
+                setFeedback('success', `Correct Target ${targetValue} found at index ${index}. Quiz ended early.`);
+            } else {
+                document.getElementById('taskDisplay').innerHTML = `TASK COMPLETE!`;
+                setFeedback('success', `You correctly performed ${QUIZ_STEPS} pointer adjustments. Click Start Quiz for a new challenge.`);
+            }
+        }
+
+        function checkAnswer(choice) {
+            if (!gameActive || document.getElementById('lowAdjustBtn').disabled) return;
+
+            if (choice === expectedAdjustment) {
+                const mid = currentMid;
+
+                if (choice === 'LOW') {
+                    lowIndex = mid + 1;
+                } else { 
+                    highIndex = mid - 1;
+                }
+                
+                // Feedback without special characters
+                setFeedback('success', `Correct Setting ${choice.toLowerCase()} to ${mid + (choice === 'LOW' ? 1 : -1)}. Advancing to the next step...`);
+                
+                document.getElementById('lowAdjustBtn').disabled = true;
+                document.getElementById('highAdjustBtn').disabled = true;
+                
+                setTimeout(nextStep, 1500);
+
+            } else {
+                // Feedback without special characters
+                setFeedback('error', `Incorrect. The target is ${expectedAdjustment === 'LOW' ? 'greater' : 'less'} than the Mid value. You should move the ${expectedAdjustment} pointer. Try again.`);
+            }
+        }
+
+        function setFeedback(type, message) {
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.className = '';
+            feedbackEl.classList.add(`feedback-${type}`);
+            feedbackEl.innerHTML = message;
+        }
+
+        // --- Initial Setup ---
+        window.onload = function() {
+            generateRandomQuiz();
+            drawVisualization();
+            setFeedback('info', 'Click Start Task to begin. The search runs for 5 steps.');
+        };
+
+        window.addEventListener('resize', () => {
+            drawVisualization(); 
+        });
+    </script>
+</body>
+</html>
