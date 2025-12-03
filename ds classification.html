@@ -1,0 +1,462 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS Sorting Challenge: Drag & Drop Classification</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8; 
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            color: #4CAF50; /* Green */
+            text-align: center;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        /* --- Introduction and Task Area --- */
+        #introBox {
+            background-color: #ffe0b2; /* Light Orange */
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #oneLineDefinition {
+            font-size: 1.1em;
+            color: #4CAF50; /* Green for definition */
+            margin: 0 0 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ffc107;
+        }
+
+        #taskStatement {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #FF5722; /* Deep Orange */
+        }
+
+        /* --- Game Status and Controls --- */
+        #gameStatus {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #f5f5f5;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        #scoreDisplay, #timerDisplay {
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        #scoreDisplay { color: #1e90ff; } /* Blue */
+        #timerDisplay { color: #FF0000; } /* Red */
+
+        .action-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .action-controls button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #4CAF50; /* Green */
+            color: white;
+            transition: background-color 0.2s;
+        }
+        
+        .action-controls button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* --- Drag and Drop Area --- */
+        #gameGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            height: 450px;
+            padding: 10px;
+        }
+        
+        /* --- Column Headers --- */
+        .grid-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 8px;
+            border-radius: 6px;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #linearHeader { background-color: #1e90ff; } /* Blue */
+        #nonlinearHeader { background-color: #FF4500; } /* Red-Orange */
+
+        /* --- Drop Zones (Bins) --- */
+        .drop-zone {
+            padding: 15px;
+            border: 3px dashed #757575; /* Gray */
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            transition: background-color 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        /* Highlight on Drag Over */
+        .drop-zone.drag-over {
+            background-color: #e0f0e0;
+            border-color: #4CAF50;
+        }
+        
+        /* Specific Bin Styling */
+        #staticLinear { border-color: #1e90ff; }
+        #dynamicLinear { border-color: #1e90ff; }
+        #staticNonlinear { border-color: #FF4500; }
+        #dynamicNonlinear { border-color: #FF4500; }
+
+        /* --- Draggable Card --- */
+        #cardSource {
+            grid-column: 1 / 3;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ccc;
+        }
+        
+        .ds-card {
+            width: 120px;
+            padding: 10px;
+            background-color: #FFD700; /* Gold */
+            border: 2px solid #FF8C00; /* Dark Orange */
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            cursor: grab;
+            user-select: none;
+            position: relative; 
+            z-index: 10;
+        }
+        
+        /* Added for the dropped card visual */
+        .dropped-card {
+             margin: 5px;
+             padding: 5px;
+             background-color: #a8e6cf; /* Pastel Green */
+             border: 1px solid #4CAF50;
+             border-radius: 4px;
+             font-size: 0.8em;
+             width: 80%;
+             color: #155724;
+        }
+        
+        #feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            min-height: 25px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Data Structure Classification </h1>
+        
+        <div id="introBox">
+            <h4 id="oneLineDefinition">Data structures are formalized ways to organize data in memory for efficient processing, categorized by their element arrangement (linear/non-linear) and size management (static/dynamic).</h4>
+            <p id="taskStatement">
+                TASK :- Drag the data structure card from the center and drop it into the correct bin based on its type.
+            </p>
+        </div>
+
+        <div id="gameStatus">
+            <div class="status-item">Score: <span id="scoreDisplay">0</span></div>
+            <div class="status-item">Time: <span id="timerDisplay">60</span>s</div>
+            <div class="status-item">Remaining: <span id="remainingDisplay">0</span></div>
+        </div>
+
+        <div id="gameGrid">
+            <div class="grid-header" id="linearHeader">LINEAR STRUCTURE</div>
+            <div class="grid-header" id="nonlinearHeader">NON-LINEAR STRUCTURE</div>
+
+            <div id="cardSource">
+                <div class="ds-card" id="draggableCard" draggable="true">START</div>
+            </div>
+
+            <div class="drop-zone" id="staticLinear">
+                Static Allocation (Fixed Size)
+                <p style="font-size:0.8em; color:#555; margin:5px 0 0 0;">(e.g., Standard Array)</p>
+            </div>
+            <div class="drop-zone" id="staticNonlinear">
+                Static Allocation (Fixed Size)
+                <p style="font-size:0.8em; color:#555; margin:5px 0 0 0;">(Rare, but possible)</p>
+            </div>
+
+            <div class="drop-zone" id="dynamicLinear">
+                Dynamic Allocation (Resizable)
+                <p style="font-size:0.8em; color:#555; margin:5px 0 0 0;">(e.g., Linked List, Queue)</p>
+            </div>
+            <div class="drop-zone" id="dynamicNonlinear">
+                Dynamic Allocation (Resizable)
+                <p style="font-size:0.8em; color:#555; margin:5px 0 0 0;">(e.g., Tree, Graph)</p>
+            </div>
+        </div>
+        
+        <div id="feedback" style="background-color: transparent;">
+            Click the START button below to load the first data structure!
+        </div>
+
+        <div class="action-controls">
+            <button onclick="startGame()" id="startBtn">START TASK</button>
+            <button onclick="endGame()" id="endBtn" disabled>END TASK</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const GAME_DURATION = 60; // seconds
+        const DATA_STRUCTURES = [
+            // { name: "Name", type: "linear" or "nonlinear", allocation: "static" or "dynamic" }
+            { name: "Linked List", type: "linear", allocation: "dynamic" },
+            { name: "Standard Array", type: "linear", allocation: "static" },
+            { name: "Binary Tree", type: "nonlinear", allocation: "dynamic" },
+            { name: "Queue", type: "linear", allocation: "dynamic" },
+            { name: "Hash Table", type: "nonlinear", allocation: "dynamic" },
+            { name: "Matrix (Fixed)", type: "linear", allocation: "static" },
+            { name: "Graph", type: "nonlinear", allocation: "dynamic" },
+            { name: "Stack (List)", type: "linear", allocation: "dynamic" }
+        ];
+
+        // --- Game State Variables ---
+        let currentCard = null;
+        let score = 0;
+        let timeRemaining = GAME_DURATION;
+        let gameInterval = null;
+        let currentDSIndex = 0;
+        let dsPool = [];
+
+        // --- DOM Elements ---
+        const cardEl = document.getElementById('draggableCard');
+        const scoreEl = document.getElementById('scoreDisplay');
+        const timerEl = document.getElementById('timerDisplay');
+        const remainingEl = document.getElementById('remainingDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const endBtn = document.getElementById('endBtn');
+        const feedbackEl = document.getElementById('feedback');
+        const dropZones = document.querySelectorAll('.drop-zone');
+
+        // --- Utility Functions ---
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function loadNextCard() {
+            if (currentDSIndex >= dsPool.length) {
+                endGame();
+                return;
+            }
+
+            currentCard = dsPool[currentDSIndex];
+            cardEl.textContent = currentCard.name;
+            cardEl.style.display = 'flex';
+            
+            // Reset position to the center of the source area
+            const source = document.getElementById('cardSource');
+            source.appendChild(cardEl);
+            cardEl.style.transform = 'none';
+
+            remainingEl.textContent = dsPool.length - currentDSIndex;
+            currentDSIndex++;
+        }
+
+        function updateTimer() {
+            timeRemaining--;
+            timerEl.textContent = timeRemaining;
+
+            if (timeRemaining <= 0) {
+                endGame();
+            }
+        }
+        
+        function updateFeedback(message, type = 'info') {
+            feedbackEl.textContent = message;
+            feedbackEl.style.color = 'white';
+            
+            if (type === 'correct') {
+                feedbackEl.style.backgroundColor = '#4CAF50'; // Green
+            } else if (type === 'incorrect') {
+                feedbackEl.style.backgroundColor = '#FF4500'; // Red
+            } else {
+                feedbackEl.style.backgroundColor = '#1e90ff'; // Blue
+            }
+        }
+
+        // --- Game Flow ---
+
+        function startGame() {
+            score = 0;
+            currentDSIndex = 0;
+            timeRemaining = GAME_DURATION;
+            scoreEl.textContent = score;
+            
+            // Prepare card pool (shuffling ensures variety)
+            dsPool = [...DATA_STRUCTURES];
+            shuffle(dsPool);
+            
+            // Start UI
+            startBtn.disabled = true;
+            endBtn.disabled = false;
+            dropZones.forEach(zone => zone.innerHTML = zone.innerHTML.split('<p')[0]); // Clear dropped cards visually
+            
+            loadNextCard();
+            
+            // Start Timer
+            gameInterval = setInterval(updateTimer, 1000);
+            updateFeedback(`Game started! Sort ${dsPool.length} data structures.`);
+        }
+
+        function endGame() {
+            clearInterval(gameInterval);
+            startBtn.disabled = false;
+            endBtn.disabled = true;
+            cardEl.style.display = 'none';
+            
+            updateFeedback(`Game Over! Final Score: ${score} / ${dsPool.length}. Time elapsed.`, score >= dsPool.length / 2 ? 'correct' : 'incorrect');
+        }
+
+        // --- Drag & Drop Handlers ---
+        
+        function getDropZoneType(zoneId) {
+            const parts = zoneId.match(/^(static|dynamic)(linear|nonlinear)$/i);
+            if (parts) {
+                return { 
+                    type: parts[2].toLowerCase(), 
+                    allocation: parts[1].toLowerCase() 
+                };
+            }
+            return null;
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = this;
+            dropZone.classList.remove('drag-over');
+
+            if (!currentCard) return;
+
+            const targetType = getDropZoneType(dropZone.id);
+
+            if (targetType) {
+                const isCorrect = (
+                    targetType.type === currentCard.type &&
+                    targetType.allocation === currentCard.allocation
+                );
+
+                if (isCorrect) {
+                    score++;
+                    scoreEl.textContent = score;
+                    updateFeedback(`Correct! ${currentCard.name} is ${targetType.allocation} and ${targetType.type}.`, 'correct');
+                    
+                    // Add card name to the bin visually
+                    const droppedVisual = document.createElement('div');
+                    droppedVisual.classList.add('dropped-card');
+                    droppedVisual.textContent = currentCard.name;
+                    dropZone.appendChild(droppedVisual);
+
+                } else {
+                    updateFeedback(`Incorrect! ${currentCard.name} is NOT ${targetType.allocation} and ${targetType.type}. Try again!`, 'incorrect');
+                    // Penalize score if desired, but for learning focus, we'll just log it.
+                    score = Math.max(0, score - 1);
+                    scoreEl.textContent = score;
+                }
+                
+                // Load the next card regardless of correctness
+                loadNextCard();
+
+            }
+        }
+        
+        // --- Event Listeners ---
+        
+        // Set drag data
+        cardEl.addEventListener('dragstart', (e) => {
+            if (!currentCard) {
+                e.preventDefault();
+                return;
+            }
+            e.dataTransfer.setData('text/plain', currentCard.name);
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        // Prevent default behavior to allow drop
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+            zone.addEventListener('drop', handleDrop);
+        });
+        
+        // Initial setup
+        window.onload = function() {
+            cardEl.style.display = 'none';
+            endBtn.onclick = endGame;
+        };
+
+    </script>
+</body>
+</html>
