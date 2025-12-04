@@ -1,0 +1,380 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Handling Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+  <style>
+    /* --- General Styling --- */
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #d0c6f0, #f0f4ff);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 15px;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      padding: 30px 25px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      text-align: center;
+      font-size: 2em;
+      color: #4b0082;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      width: 80px;
+      height: 4px;
+      background: #4b0082;
+      display: block;
+      margin: 8px auto 0;
+      border-radius: 2px;
+    }
+
+    #introBox {
+      background: #e8e8ff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 25px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    #introBox h4 {
+      margin: 0 0 10px 0;
+      font-weight: 500;
+      color: #4b0082;
+      line-height: 1.5;
+    }
+
+    #taskStatement {
+      font-weight: 600;
+      font-size: 1.1em;
+      color: #d32f2f;
+    }
+
+    #gameArea {
+      padding: 20px;
+      border-radius: 12px;
+      background: #fafaff;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+
+    #statusBox {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff9c4;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    #scoreDisplay { color: #388e3c; }
+    #questionCounter { color: #1976d2; }
+
+    #progressBarContainer {
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      height: 12px;
+      margin-bottom: 20px;
+    }
+
+    #progressBar {
+      height: 12px;
+      width: 0%;
+      background: linear-gradient(90deg, #4b0082, #7b1fa2);
+      border-radius: 12px;
+      transition: width 0.5s ease;
+    }
+
+    #codeSnippetBox {
+      background: #1e1e2f;
+      color: #ffca28;
+      padding: 18px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      margin-bottom: 25px;
+      overflow-x: auto;
+    }
+
+    .question-layer {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .question-layer:hover { transform: translateY(-3px); }
+
+    .question-layer h3 {
+      margin: 0 0 12px 0;
+      font-size: 1.1em;
+      border-bottom: 2px dashed #eee;
+      padding-bottom: 6px;
+    }
+
+    .option-group {
+      display: flex;
+      justify-content: space-around;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .option-group label {
+      flex: 1 1 30%;
+      text-align: center;
+      padding: 12px 8px;
+      border: 2px solid #1976d2;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #e3f2fd;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .option-group label:hover {
+      background: #1976d2;
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    .option-group input[type="radio"] { display: none; }
+
+    .option-group input[type="radio"]:checked + label {
+      background: #1976d2;
+      color: #fff;
+      border-color: #0d47a1;
+    }
+
+    #feedback {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+      min-height: 28px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .action-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 18px;
+      gap: 12px;
+    }
+
+    .action-controls button {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4b0082, #7b1fa2);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .action-controls button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Primitive vs. Non-Primitive Data Types</h1>
+
+    <div id="introBox">
+      <h4>Primitive types store the value directly in memory (Stack). Non-primitive types store a reference in the Stack and data in the Heap.</h4>
+      <p id="taskStatement">TASK: Analyze the variable below and classify its memory handling.</p>
+    </div>
+
+    <div id="gameArea">
+      <div id="statusBox">
+        <span>Score: <span id="scoreDisplay">0</span></span>
+        <span>Question: <span id="questionCounter">0 / 5</span></span>
+      </div>
+
+      <div id="progressBarContainer">
+        <div id="progressBar"></div>
+      </div>
+
+      <div id="codeSnippetBox">
+        <code id="codeSnippet">let variableName = 100;</code>
+      </div>
+
+      <div class="question-layer">
+        <h3 style="color: #388e3c;">1. Data Type Classification</h3>
+        <div class="option-group" id="classificationOptions">
+          <input type="radio" id="class-primitive" name="classification_choice" value="Primitive"><label for="class-primitive">Primitive</label>
+          <input type="radio" id="class-nonprimitive" name="classification_choice" value="Non-Primitive"><label for="class-nonprimitive">Non-Primitive</label>
+        </div>
+      </div>
+
+      <div class="question-layer">
+        <h3 style="color: #f57c00;">2. Value/Data Storage Location</h3>
+        <div class="option-group" id="storageOptions">
+          <input type="radio" id="store-stack" name="storage_choice" value="Stack"><label for="store-stack">Stack</label>
+          <input type="radio" id="store-heap" name="storage_choice" value="Heap"><label for="store-heap">Heap</label>
+        </div>
+      </div>
+
+      <div class="question-layer">
+        <h3 style="color: #1976d2;">3. Assignment Behavior</h3>
+        <div class="option-group" id="assignmentOptions">
+          <input type="radio" id="assign-value" name="assignment_choice" value="Value"><label for="assign-value">By Value</label>
+          <input type="radio" id="assign-reference" name="reference_choice" value="Reference"><label for="assign-reference">By Reference</label>
+        </div>
+      </div>
+
+      <div id="feedback" style="background-color: transparent;">Select all options, then click Check Answer.</div>
+
+      <div class="action-controls">
+        <button onclick="checkAnswer()" id="checkBtn">CHECK ANSWER</button>
+        <button onclick="loadNextQuestion()" id="nextBtn" disabled>NEXT VARIABLE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SCENARIOS = [
+      { code: "let x = 42;", classification: "Primitive", storage: "Stack", assignment: "Value" },
+      { code: "let name = \"Alice\";", classification: "Primitive", storage: "Stack", assignment: "Value" },
+      { code: "let user = { id: 1, active: true };", classification: "Non-Primitive", storage: "Heap", assignment: "Reference" },
+      { code: "let list = [1, 2, 3];", classification: "Non-Primitive", storage: "Heap", assignment: "Reference" },
+      { code: "let isReady = false;", classification: "Primitive", storage: "Stack", assignment: "Value" }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const codeSnippetEl = document.getElementById('codeSnippet');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const questionCounter = document.getElementById('questionCounter');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const feedbackEl = document.getElementById('feedback');
+    const progressBar = document.getElementById('progressBar');
+
+    function getSelectedValue(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value;
+    }
+
+    function clearSelections() {
+      document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+    }
+
+    function updateScore(isCorrect) {
+      scoreDisplay.textContent = score;
+      questionCounter.textContent = `${currentQuestionIndex} / ${SCENARIOS.length}`;
+      progressBar.style.width = `${(currentQuestionIndex/SCENARIOS.length)*100}%`;
+    }
+
+    function loadNextQuestion() {
+      if (currentQuestionIndex >= SCENARIOS.length) return endGame();
+      const q = SCENARIOS[currentQuestionIndex];
+      codeSnippetEl.textContent = q.code;
+      clearSelections();
+      checkBtn.disabled = false;
+      nextBtn.disabled = true;
+      feedbackEl.style.backgroundColor = 'transparent';
+      feedbackEl.textContent = `Question ${currentQuestionIndex + 1}: Analyze memory handling.`;
+      updateScore(false);
+    }
+
+    function checkAnswer() {
+      const q = SCENARIOS[currentQuestionIndex];
+      const selectedClass = getSelectedValue('classification_choice');
+      const selectedStorage = getSelectedValue('storage_choice');
+      const selectedAssignment = getSelectedValue('assignment_choice') || getSelectedValue('reference_choice');
+
+      if (!selectedClass || !selectedStorage || !selectedAssignment) {
+        feedbackEl.style.backgroundColor = '#f8d7da';
+        feedbackEl.style.color = '#721c24';
+        feedbackEl.innerHTML = 'Please answer all three questions before checking.';
+        return;
+      }
+
+      let correctCount = 0;
+      const checks = [
+        { selected: selectedClass, correct: q.classification, name: 'classification_choice' },
+        { selected: selectedStorage, correct: q.storage, name: 'storage_choice' },
+        { selected: selectedAssignment, correct: q.assignment, name: 'assignment_choice' }
+      ];
+
+      checks.forEach(check => {
+        if (check.selected === check.correct) correctCount++;
+      });
+
+      if (correctCount === 3) {
+        score++;
+        feedbackEl.style.backgroundColor = '#d4edda';
+        feedbackEl.style.color = '#155724';
+        feedbackEl.innerHTML = `PERFECT! All answers correct.`;
+      } else {
+        feedbackEl.style.backgroundColor = '#fff3cd';
+        feedbackEl.style.color = '#856404';
+        feedbackEl.innerHTML = `INCORRECT. You missed ${3 - correctCount} concept(s).`;
+      }
+
+      checkBtn.disabled = true;
+      nextBtn.disabled = false;
+      currentQuestionIndex++;
+      updateScore(true);
+    }
+
+    function endGame() {
+      codeSnippetEl.innerHTML = `--- CHALLENGE COMPLETE ---`;
+      feedbackEl.style.backgroundColor = '#e6f7ff';
+      feedbackEl.style.color = '#4b0082';
+      feedbackEl.innerHTML = `FINAL SCORE: ${score} out of ${SCENARIOS.length}. Click Start New Game to try again.`;
+      checkBtn.style.display = 'none';
+      nextBtn.textContent = 'START NEW GAME';
+      nextBtn.onclick = initializeGame;
+      nextBtn.disabled = false;
+      document.querySelectorAll('.question-layer').forEach(layer => layer.style.display = 'none');
+    }
+
+    function initializeGame() {
+      score = 0;
+      currentQuestionIndex = 0;
+      checkBtn.style.display = 'inline-block';
+      document.querySelectorAll('.question-layer').forEach(layer => layer.style.display = 'block');
+      nextBtn.textContent = 'NEXT VARIABLE';
+      nextBtn.onclick = loadNextQuestion;
+      loadNextQuestion();
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeGame);
+  </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complexity Challenge Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #ffe0b2);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    max-width: 900px;
+    width: 100%;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  }
+  h1 {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    color: #d84315;
+  }
+  .info-box {
+    background: #fff3e0;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  .info-box h3 { margin-top: 0; color: #e65100; }
+  .info-box p { margin: 5px 0; }
+  .task-box {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f0f4c3;
+    border-radius: 12px;
+  }
+  .task-box h3 { margin-top: 0; color: #558b2f; }
+  .choices button {
+    padding: 10px 20px;
+    margin: 8px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    transition: transform 0.2s;
+  }
+  .choices button:hover { transform: translateY(-2px); }
+  .meter-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+  }
+  .meter {
+    flex: 1;
+    margin: 0 10px;
+    text-align: center;
+  }
+  .bar {
+    height: 25px;
+    border-radius: 8px;
+    background-color: #90caf9;
+    margin-top: 5px;
+    transition: width 0.5s;
+  }
+  #feedback {
+    padding: 10px;
+    min-height: 30px;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .score-board {
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Algorithm Complexity </h1>
+
+  <div class="info-box">
+    <h3>Concepts :</h3>
+    <p><strong>Time Complexity:</strong> How execution time grows with input size.</p>
+    <p><strong>Space Complexity:</strong> How memory usage grows with input size.</p>
+    <p><strong>Big O:</strong> Upper bound notation for algorithm efficiency (O(1), O(n), O(n²), etc.)</p>
+    <p><strong>Cases:</strong> Best = fastest, Worst = slowest, Average = typical.</p>
+  </div>
+
+  <div class="score-board">
+    Score: <span id="score">0</span> | Level: <span id="level">1</span>
+  </div>
+
+  <div class="meter-container">
+    <div class="meter">
+      <span>Time Complexity</span>
+      <div class="bar" id="timeBar" style="width:0%"></div>
+    </div>
+    <div class="meter">
+      <span>Space Complexity</span>
+      <div class="bar" id="spaceBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="task-box" id="taskBox">
+    <h3>Task 1: Choose the best algorithm step</h3>
+    <p id="taskDescription">You need to iterate through an array to find a number. Choose the most efficient method:</p>
+    <div class="choices" id="choices">
+      <button data-time="5" data-space="1" data-feedback="Correct! Linear search uses O(n) time.">Linear Search (O(n))</button>
+      <button data-time="1" data-space="1" data-feedback="Incorrect! O(1) is only for direct access, not search.">Direct Access (O(1))</button>
+      <button data-time="25" data-space="2" data-feedback="Incorrect! Nested loops unnecessary here.">Nested Loops (O(n²))</button>
+    </div>
+  </div>
+
+  <div id="feedback"></div>
+  <button onclick="nextTask()">Next Task</button>
+</div>
+
+<script>
+  const tasks = [
+    {
+      description: "You need to iterate through an array to find a number. Choose the most efficient method:",
+      options: [
+        {text:"Linear Search (O(n))", time:5, space:1, feedback:"Correct! Linear search uses O(n) time."},
+        {text:"Direct Access (O(1))", time:1, space:1, feedback:"Incorrect! O(1) is only for direct access, not search."},
+        {text:"Nested Loops (O(n²))", time:25, space:2, feedback:"Incorrect! Nested loops unnecessary here."}
+      ]
+    },
+    {
+      description: "You need to access the first element of an array:",
+      options:[
+        {text:"Linear Search (O(n))", time:5, space:1, feedback:"Incorrect! Accessing first element is O(1)."},
+        {text:"Direct Access (O(1))", time:1, space:1, feedback:"Correct! Direct access is O(1)."},
+        {text:"Nested Loops (O(n²))", time:25, space:2, feedback:"Incorrect! Nested loops unnecessary here."}
+      ]
+    },
+    {
+      description: "You have two nested loops iterating over the same array to compare each element pair:",
+      options:[
+        {text:"Nested Loops (O(n²))", time:25, space:2, feedback:"Correct! Nested loops give O(n²) time complexity."},
+        {text:"Linear Search (O(n))", time:5, space:1, feedback:"Incorrect! One loop would be O(n), not two nested."},
+        {text:"Direct Access (O(1))", time:1, space:1, feedback:"Incorrect! Direct access doesn't apply to all comparisons."}
+      ]
+    }
+  ];
+
+  let currentTask = 0;
+  let score = 0;
+  let level = 1;
+
+  const taskBox = document.getElementById('taskBox');
+  const taskDescription = document.getElementById('taskDescription');
+  const choices = document.getElementById('choices');
+  const feedbackEl = document.getElementById('feedback');
+  const timeBar = document.getElementById('timeBar');
+  const spaceBar = document.getElementById('spaceBar');
+  const scoreEl = document.getElementById('score');
+  const levelEl = document.getElementById('level');
+
+  function loadTask(){
+    const task = tasks[currentTask];
+    taskDescription.textContent = task.description;
+    choices.innerHTML = '';
+    task.options.forEach(option => {
+      const btn = document.createElement('button');
+      btn.textContent = option.text;
+      btn.dataset.time = option.time;
+      btn.dataset.space = option.space;
+      btn.dataset.feedback = option.feedback;
+      btn.onclick = chooseOption;
+      choices.appendChild(btn);
+    });
+    feedbackEl.textContent = '';
+  }
+
+  function chooseOption(e){
+    const time = parseInt(e.target.dataset.time);
+    const space = parseInt(e.target.dataset.space);
+    const feedback = e.target.dataset.feedback;
+    timeBar.style.width = `${time*3}%`;
+    spaceBar.style.width = `${space*20}%`;
+    feedbackEl.textContent = feedback;
+    if(feedback.startsWith("Correct")) score++;
+    scoreEl.textContent = score;
+  }
+
+  function nextTask(){
+    currentTask++;
+    if(currentTask >= tasks.length){
+      feedbackEl.textContent = `Challenge Complete! Final Score: ${score} / ${tasks.length}`;
+      taskBox.style.display = 'none';
+    } else {
+      level++;
+      levelEl.textContent = level;
+      loadTask();
+    }
+  }
+
+  window.onload = loadTask;
+</script>
+</body>
+</html>
