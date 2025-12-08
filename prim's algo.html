@@ -1,0 +1,531 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prim's: Supply Chain Prioritizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styling and Layout (Supply Chain Theme) --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5; /* Light background */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 900px;
+            padding: 30px;
+            border: 3px solid #009688; /* Teal/Green for Logistics */
+        }
+        h1 {
+            color: #009688;
+            text-align: center;
+            border-bottom: 2px solid #ff9800; /* Orange for Warning/Priority */
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-transform: uppercase;
+        }
+        .reference-panel {
+            background-color: #e0f2f1;
+            border: 1px solid #b2dfdb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+        .reference-panel strong { color: #009688; }
+        .task-description {
+            background-color: #fff3e0; /* Light Orange */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ff9800;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #e65100;
+            font-weight: 600;
+            text-align: center;
+        }
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background-color: #009688; color: white; border-radius: 8px;
+        }
+        .header-bar span { color: #ffeb3b; /* Yellow */ }
+        .feedback-area {
+            min-height: 40px; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;
+            font-weight: bold; transition: background-color 0.3s;
+        }
+        .feedback-area.success { background-color: #d4edda; color: #155724; border: 1px solid #28a745; }
+        .feedback-area.error { background-color: #f8d7da; color: #721c24; border: 1px solid #dc3545; }
+        .feedback-area.info { background-color: #e9ecef; color: #383d41; border: 1px solid #adb5bd; }
+
+        /* --- Task Layout (Card and Queue) --- */
+        .task-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Graph on left, Queue on right */
+            gap: 20px;
+        }
+
+        .graph-area {
+            position: relative;
+            /* Ensure fixed height, but let width be controlled by the grid */
+            width: 100%; 
+            height: 350px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f0fff0 0%, #e0f0ff 100%); 
+        }
+        .queue-area {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            height: 350px;
+            overflow-y: auto;
+        }
+
+        .queue-area h3 {
+            color: #ff9800;
+            margin-top: 0;
+            border-bottom: 1px dashed #ff9800;
+            padding-bottom: 5px;
+        }
+
+        /* --- Priority Card Styling (Edge List) --- */
+        .priority-card {
+            background-color: #ffffff;
+            border: 2px solid #009688;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .priority-card:hover:enabled {
+            background-color: #e0f2f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .priority-card.selected-card {
+            border-color: #ff9800;
+            background-color: #fff3e0;
+        }
+        .priority-card.disabled-card {
+            background-color: #f0f0f0;
+            color: #999;
+            text-decoration: line-through;
+            cursor: not-allowed;
+            border-color: #ccc;
+        }
+        .card-details { font-weight: 500; }
+        .card-cost { font-weight: bold; color: #dc3545; /* Red for cost */ }
+        .priority-card.in-mst {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .card-status {
+            font-size: 0.8em;
+            color: #007bff;
+        }
+
+        /* --- Graph Visualization Base --- */
+        .node {
+            position: absolute; width: 35px; height: 35px; border-radius: 50%; background-color: #007bff;
+            color: white; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; cursor: pointer; z-index: 10; transition: all 0.2s;
+        }
+        .node.in-tree { background-color: #28a745; box-shadow: 0 0 10px #28a745; }
+        .edge-line { position: absolute; height: 2px; background-color: #a7d9ef; transform-origin: 0 50%; z-index: 5; }
+        .edge-line.in-mst { background-color: #009688; height: 3px; }
+        .edge-weight { position: absolute; background-color: #fff; padding: 2px 5px; border-radius: 4px; font-size: 0.8em; border: 1px solid #ccc; z-index: 15; 
+pointer-events: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>PRIM'S ALGORITHM: SUPPLY CHAIN PRIORITIZER</h1>
+
+        <div class="reference-panel">
+            <strong>BRIEFING:</strong> Prim's Algorithm greedily expands the network. Start from any depot. At each step, choose the cheapest available route that links 
+the connected network (Green) to an unconnected depot (Blue).
+        </div>
+
+        <div class="header-bar">
+            <span>MISSION: MINIMIZE LOGISTICS COST</span>
+            <span>TOTAL COST: <span id="prim-total-cost">0</span></span>
+            <span>ROUTES SECURED: <span id="prim-edges-count">0</span> / <span id="prim-required-edges">0</span></span>
+        </div>
+
+        <div class="task-description">
+            <strong id="prim-task-text">TASK: Click a depot (node) on the map to initialize the supply network.</strong>
+        </div>
+
+        <div class="task-layout">
+            <div class="graph-area" id="prim-graph-display">
+                </div>
+            
+            <div class="queue-area">
+                <h3>PRIORITY QUEUE (Available Routes)</h3>
+                <div id="prim-edge-list">
+                    </div>
+            </div>
+        </div>
+
+        <div id="prim-feedback" class="feedback-area info">
+            Awaiting initialization.
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="confirmPrimSelection()" id="prim-confirm-btn" disabled>FINALIZE ROUTE</button>
+            <button onclick="resetPrimGame()" id="prim-reset-btn">RESTART SIMULATION</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SCALED DOWN COORDINATES FOR PROPER ALIGNMENT ---
+        const primGraphConfig = {
+            nodes: [
+                // Coordinates adjusted to use the available space more evenly (approx 550px width)
+                { id: 'A', x: 50, y: 50 },  
+                { id: 'B', x: 250, y: 50 }, 
+                { id: 'C', x: 450, y: 50 }, 
+                { id: 'D', x: 150, y: 180 },
+                { id: 'E', x: 350, y: 180 },
+                { id: 'F', x: 50, y: 310 }, 
+                { id: 'G', x: 250, y: 310 },
+                { id: 'H', x: 450, y: 310 } 
+            ],
+            edges: [
+                { from: 'A', to: 'B', weight: 4 }, { from: 'A', to: 'D', weight: 8 },
+                { from: 'B', to: 'C', weight: 7 }, { from: 'B', to: 'D', weight: 11 }, { from: 'B', to: 'E', weight: 10 },
+                { from: 'C', to: 'E', weight: 5 }, { from: 'C', to: 'H', weight: 3 },
+                { from: 'D', to: 'E', weight: 2 }, { from: 'D', to: 'F', weight: 6 }, { from: 'D', to: 'G', weight: 1 },
+                { from: 'E', to: 'G', weight: 9 }, { from: 'E', to: 'H', weight: 12 },
+                { from: 'F', to: 'G', weight: 14 },
+                { from: 'G', to: 'H', weight: 13 }
+            ]
+        };
+
+        let primState = {
+            inTree: new Set(),
+            mstEdges: [],
+            totalCost: 0,
+            requiredEdges: primGraphConfig.nodes.length - 1,
+            selectedEdge: null,
+            started: false
+        };
+
+        const primDom = {
+            display: document.getElementById('prim-graph-display'),
+            cost: document.getElementById('prim-total-cost'),
+            count: document.getElementById('prim-edges-count'),
+            required: document.getElementById('prim-required-edges'),
+            feedback: document.getElementById('prim-feedback'),
+            confirmBtn: document.getElementById('prim-confirm-btn'),
+            taskText: document.getElementById('prim-task-text'),
+            edgeList: document.getElementById('prim-edge-list')
+        };
+
+        // --- Visualization Helper ---
+        function drawEdge(container, edge, nodes) {
+            const fromNode = nodes.find(n => n.id === edge.from);
+            const toNode = nodes.find(n => n.id === edge.to);
+            if (!fromNode || !toNode) return {};
+
+            const x1 = fromNode.x + 17; const y1 = fromNode.y + 17;
+            const x2 = toNode.x + 17; const y2 = toNode.y + 17;
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            const edgeDiv = document.createElement('div');
+            edgeDiv.className = 'edge-line';
+            edgeDiv.style.width = `${length}px`;
+            edgeDiv.style.left = `${x1}px`;
+            edgeDiv.style.top = `${y1}px`;
+            edgeDiv.style.transform = `rotate(${angle}deg)`;
+            edgeDiv.dataset.from = edge.from;
+            edgeDiv.dataset.to = edge.to;
+            
+            const weightDiv = document.createElement('div');
+            weightDiv.className = 'edge-weight';
+            weightDiv.textContent = edge.weight;
+            weightDiv.style.left = `${(x1 + x2) / 2 - 10}px`;
+            weightDiv.style.top = `${(y1 + y2) / 2 - 10}px`;
+
+            container.appendChild(edgeDiv);
+            container.appendChild(weightDiv);
+            return { edgeDiv, weightDiv };
+        }
+
+        // --- Graph Drawing ---
+        function drawPrimGraph() {
+            primDom.display.innerHTML = '';
+            primGraphConfig.nodes.forEach(node => {
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                nodeDiv.id = `prim-node-${node.id}`;
+                nodeDiv.textContent = node.id;
+                nodeDiv.style.left = `${node.x}px`;
+                nodeDiv.style.top = `${node.y}px`;
+                nodeDiv.onclick = () => primNodeClicked(node.id);
+                primDom.display.appendChild(nodeDiv);
+            });
+
+            primGraphConfig.edges.forEach(edge => {
+                drawEdge(primDom.display, edge, primGraphConfig.nodes);
+            });
+        }
+
+        // --- Edge List Rendering ---
+        function renderEdgeList() {
+            primDom.edgeList.innerHTML = '';
+            
+            // Sort edges by weight (to visually represent the priority queue)
+            const sortedEdges = [...primGraphConfig.edges].sort((a, b) => a.weight - b.weight);
+            
+            sortedEdges.forEach((edge, index) => {
+                const isMst = primState.mstEdges.some(e => 
+                    (e.from === edge.from && e.to === edge.to) || (e.from === edge.to && e.to === edge.from)
+                );
+                
+                if (isMst) {
+                    const card = document.createElement('div');
+                    card.className = 'priority-card in-mst';
+                    card.innerHTML = `<span class="card-details">Route ${edge.from}-${edge.to}</span>
+                                      <span class="card-cost">${edge.weight}</span>
+                                      <span class="card-status">SECURED</span>`;
+                    primDom.edgeList.appendChild(card);
+                    return;
+                }
+
+                const fromInTree = primState.inTree.has(edge.from);
+                const toInTree = primState.inTree.has(edge.to);
+
+                let status = '';
+                let isDisabled = false;
+                let isCandidate = false;
+
+                if (!primState.started) {
+                    status = 'Awaiting Start';
+                    isDisabled = true;
+                } else if (fromInTree && toInTree) {
+                    status = 'Internal Route (Cycle)';
+                    isDisabled = true;
+                } else if (!fromInTree && !toInTree) {
+                    status = 'Isolated Route';
+                    isDisabled = true;
+                } else {
+                    status = 'Valid Candidate';
+                    isCandidate = true;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'priority-card';
+                card.innerHTML = `<span class="card-details">Route ${edge.from}-${edge.to}</span>
+                                  <span class="card-cost">${edge.weight}</span>
+                                  <span class="card-status">${status}</span>`;
+                
+                if (isDisabled) {
+                    card.classList.add('disabled-card');
+                } else if (isCandidate) {
+                    // Pass the whole edge object to the selection handler
+                    card.onclick = () => primEdgeSelected(edge);
+                    
+                    // Highlight the currently selected card visually
+                    if (primState.selectedEdge && primState.selectedEdge.from === edge.from && primState.selectedEdge.to === edge.to && primState.selectedEdge.weight === edge.weight) {
+                        card.classList.add('selected-card');
+                    }
+                }
+
+                primDom.edgeList.appendChild(card);
+            });
+        }
+
+
+        // --- Prim's Game Logic ---
+
+        function findMinPrimEdge() {
+            let minWeight = Infinity;
+            let minEdge = null;
+
+            primGraphConfig.edges.forEach(edge => {
+                const isMst = primState.mstEdges.some(e => 
+                    (e.from === edge.from && e.to === edge.to) || (e.from === edge.to && e.to === edge.from)
+                );
+                if (isMst) return;
+
+                const fromInTree = primState.inTree.has(edge.from);
+                const toInTree = primState.inTree.has(edge.to);
+
+                // Is a valid Prim's candidate? (IN-TREE to NOT-IN-TREE)
+                if ((fromInTree && !toInTree) || (!fromInTree && toInTree)) {
+                    if (edge.weight < minWeight) {
+                        minWeight = edge.weight;
+                        minEdge = edge;
+                    }
+                }
+            });
+            return minEdge;
+        }
+
+        function primNodeClicked(nodeId) {
+            if (primState.started) return;
+
+            primState.inTree.add(nodeId);
+            primState.started = true;
+            
+            const minEdge = findMinPrimEdge();
+            primDom.taskText.innerHTML = `PRIORITIZE: Move the cheapest valid **Priority Card** (cost ${minEdge.weight}) from the right list to connect the network.`;
+            primDom.feedback.textContent = `Supply Network initialized at Depot ${nodeId}. Select the priority card now.`;
+            primDom.feedback.classList.value = 'feedback-area success';
+            updatePrimUI();
+        }
+
+        function primEdgeSelected(edge) {
+            if (!primState.started) return;
+            
+            // Check if this is the MINIMUM valid edge (Prim's greedy choice)
+            const minEdge = findMinPrimEdge();
+            
+            // Check if the edge is a valid candidate (connects IN-TREE to NOT-IN-TREE)
+            const fromInTree = primState.inTree.has(edge.from);
+            const toInTree = primState.inTree.has(edge.to);
+            const isValidCandidate = (fromInTree && !toInTree) || (!fromInTree && toInTree);
+            
+            if (!isValidCandidate) {
+                 primDom.feedback.textContent = `Error: Route ${edge.from}-${edge.to} is invalid (Internal or Isolated Route). Select a Valid Candidate.`;
+                 primDom.feedback.classList.value = 'feedback-area error';
+                 primState.selectedEdge = null;
+                 primDom.confirmBtn.disabled = true;
+            } else if (minEdge && edge.weight === minEdge.weight) {
+                // Correct selection (minimum weight)
+                primState.selectedEdge = edge;
+                primDom.feedback.textContent = `Priority Card selected: Route ${edge.from}-${edge.to} (Cost: ${edge.weight}). Click FINALIZE ROUTE.`;
+                primDom.feedback.classList.value = 'feedback-area info';
+                primDom.confirmBtn.disabled = false;
+            } else {
+                // Incorrect selection (not minimum weight)
+                primDom.feedback.textContent = `Error: This route is valid, but not the MINIMUM COST (must be ${minEdge.weight}). Try again.`;
+                primDom.feedback.classList.value = 'feedback-area error';
+                primState.selectedEdge = null;
+                primDom.confirmBtn.disabled = true;
+            }
+            updatePrimUI(); 
+        }
+
+        function confirmPrimSelection() {
+            const edge = primState.selectedEdge;
+            if (!edge) return;
+            
+            // 1. Update State
+            primState.mstEdges.push(edge);
+            primState.totalCost += edge.weight;
+            
+            // Add the newly connected node to the tree set
+            const newNode = primState.inTree.has(edge.from) ? edge.to : edge.from;
+            primState.inTree.add(newNode);
+            
+            primState.selectedEdge = null;
+            primDom.confirmBtn.disabled = true;
+
+            // 2. Check Game End
+            if (primState.mstEdges.length === primState.requiredEdges) {
+                primDom.feedback.textContent = `SUCCESS! Supply Chain Optimized. Total Cost: ${primState.totalCost}.`;
+                primDom.feedback.classList.value = 'feedback-area success';
+                primDom.taskText.innerHTML = "OPTIMIZATION COMPLETE. FINAL COST: " + primState.totalCost;
+            } else {
+                const nextMinEdge = findMinPrimEdge();
+                if (nextMinEdge) {
+                     primDom.feedback.textContent = `Route finalized. Select the next cheapest priority card (cost ${nextMinEdge.weight}) to expand the network.`;
+                     primDom.feedback.classList.value = 'feedback-area success';
+                     primDom.taskText.innerHTML = `PRIORITIZE: Move the cheapest valid **Priority Card** (cost ${nextMinEdge.weight}) from the right list to connect the network.`;
+                } else {
+                     // This case usually indicates a logic error or a disconnected graph
+                     primDom.feedback.textContent = `Error: Cannot find the next cheapest edge. Graph may be disconnected.`;
+                     primDom.feedback.classList.value = 'feedback-area error';
+                }
+            }
+            
+            // 3. Re-render UI to reflect changes and re-bind handlers
+            updatePrimUI(true); 
+        }
+
+        function updatePrimUI() {
+            primDom.cost.textContent = primState.totalCost;
+            primDom.count.textContent = primState.mstEdges.length;
+
+            // Update nodes and edges visuals
+            primGraphConfig.nodes.forEach(node => {
+                const nodeEl = document.getElementById(`prim-node-${node.id}`);
+                nodeEl.classList.remove('in-tree');
+                nodeEl.style.boxShadow = '';
+                nodeEl.onclick = () => primNodeClicked(node.id);
+                
+                if (primState.inTree.has(node.id)) {
+                    nodeEl.classList.add('in-tree');
+                    nodeEl.onclick = null;
+                } else if (!primState.started) {
+                    nodeEl.style.boxShadow = '0 0 5px #007bff';
+                } else {
+                    nodeEl.onclick = null;
+                }
+            });
+
+            document.querySelectorAll('.edge-line, .edge-weight').forEach(el => {
+                el.classList.remove('selected', 'in-mst');
+                const from = el.dataset.from;
+                const to = el.dataset.to;
+
+                const isMst = primState.mstEdges.some(e => 
+                    (e.from === from && e.to === to) || (e.from === to && e.to === from)
+                );
+                if (isMst) el.classList.add('in-mst');
+
+                if (primState.selectedEdge) {
+                    const sel = primState.selectedEdge;
+                    const isSelected = (sel.from === from && sel.to === to) || (sel.from === to && sel.to === from);
+                    if (isSelected && !isMst) el.classList.add('selected');
+                }
+            });
+            
+            // THIS IS CRUCIAL: Re-render the edge list to update card status/candidates and re-bind click handlers
+            renderEdgeList();
+        }
+
+        function resetPrimGame() {
+            primState = {
+                inTree: new Set(), mstEdges: [], totalCost: 0,
+                requiredEdges: primGraphConfig.nodes.length - 1, selectedEdge: null, started: false
+            };
+            primDom.taskText.innerHTML = "Click a depot (node) on the map to initialize the supply network.";
+            primDom.required.textContent = primState.requiredEdges;
+            primDom.feedback.textContent = "Awaiting initialization.";
+            primDom.feedback.classList.value = 'feedback-area info';
+            primDom.confirmBtn.disabled = true;
+            drawPrimGraph();
+            updatePrimUI();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            resetPrimGame();
+        });
+    </script>
+</body>
+</html>

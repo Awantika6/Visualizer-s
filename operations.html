@@ -1,0 +1,459 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DS Operation Goal Inspector</title>
+    <style>
+        /* --- General Styling and Layout --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            width: 95%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            color: #4b0082; /* Indigo */
+            text-align: center;
+            border-bottom: 3px solid #4b0082;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        /* --- Theory Section Styling --- */
+        #theorySection {
+            background-color: #f0f8ff; /* Alice Blue */
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            border: 1px solid #1e90ff;
+        }
+        
+        #theorySection h2 {
+            color: #2e8b57; /* Sea Green */
+            font-size: 1.5em;
+            margin-top: 0;
+            padding-bottom: 5px;
+            border-bottom: 2px dashed #b19cd9;
+        }
+
+        .operation-concept {
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #ff6347; /* Red line for emphasis */
+        }
+
+        .operation-concept strong {
+            font-size: 1.1em;
+            color: #dc143c;
+        }
+        
+        .operation-concept p {
+            margin: 5px 0 0 0;
+            font-size: 0.95em;
+        }
+
+        /* --- Task Area Styling --- */
+        #introBox {
+            background-color: #ffe0b2; /* Light Orange for Task Header */
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #taskStatement {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #4b0082; /* Indigo */
+            margin: 0;
+        }
+
+        /* --- Game Area --- */
+        #gameArea {
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #f7f7ff;
+        }
+
+        /* --- Status and Score --- */
+        #statusBox {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fffacd;
+            border-radius: 4px;
+        }
+        
+        #scoreDisplay { font-weight: bold; color: #4CAF50; }
+        #questionCounter { font-weight: bold; color: #1e90ff; }
+
+        /* --- Scenario Display --- */
+        #scenarioBox {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        #goalText {
+            font-size: 1.2em;
+            color: #ffc107; /* Amber */
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        #requirementText {
+            font-size: 0.9em;
+            color: #a8e6cf; /* Light Green */
+        }
+
+        /* --- Option Button Styles --- */
+        .option-group {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-group label {
+            flex: 1;
+            text-align: center;
+            padding: 15px 5px;
+            border: 3px solid #1e90ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1em;
+            background-color: #f0f8ff;
+            font-weight: bold;
+            /* Ensure text color is dark by default */
+            color: #333; 
+        }
+        
+        .option-group input[type="radio"] {
+            display: none;
+        }
+        
+        /* NOTE: The CSS check style is now only for immediate selection visual feedback */
+        /* It will be overridden by the JavaScript on selection or when checking the answer. */
+        .option-group input[type="radio"]:checked + label {
+            background-color: #1e90ff;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        /* --- Feedback and Controls --- */
+        #feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            min-height: 25px;
+            font-size: 0.95em;
+        }
+
+        .action-controls button {
+            padding: 10px 25px;
+            background-color: #4b0082;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Data Structure Operations </h1>
+        
+        <div id="theorySection">
+            
+            <div class="operation-concept">
+                <strong>1. Traversing (Searching/Visiting)</strong>
+                <p>— To access, examine, or process every element in the structure exactly once.</p>
+            </div>
+            
+            <div class="operation-concept">
+                <strong>2. Insertion (Adding)</strong>
+                <p>— To add a new data element while ensuring the structure maintains its defined properties (e.g., LIFO, sorted order).</p>
+            </div>
+            
+            <div class="operation-concept">
+                <strong>3. Deletion (Removing)</strong>
+                <p>— To remove a specified element and properly link the remaining elements to maintain structural integrity.</p>
+            </div>
+        </div>
+        <div id="introBox">
+            <p id="taskStatement">
+                TASK: Identify the primary operation (Traversing, Insertion, or Deletion) required to achieve the stated goal.
+            </p>
+        </div>
+
+        <div id="gameArea">
+            
+            <div id="statusBox">
+                <span>Score: <span id="scoreDisplay">0</span></span>
+                <span>Question: <span id="questionCounter">0 / 5</span></span>
+            </div>
+
+            <div id="scenarioBox">
+                <div id="goalText">GOAL: Find a specific employee ID within a large database system.</div>
+                <div id="requirementText">REQUIREMENT: Must examine existing data elements.</div>
+            </div>
+
+            <div class="option-group">
+                <input type="radio" id="op-traverse" name="operation_choice" value="Traversing"><label for="op-traverse">Traversing</label>
+                <input type="radio" id="op-insert" name="operation_choice" value="Insertion"><label for="op-insert">Insertion</label>
+                <input type="radio" id="op-delete" name="operation_choice" value="Deletion"><label for="op-delete">Deletion</label>
+            </div>
+
+            <div id="feedback" style="background-color: transparent;">
+                Select the operation that matches the goal, then click Check Answer.
+            </div>
+            
+            <div class="action-controls">
+                <button onclick="checkAnswer()" id="checkBtn">CHECK ANSWER</button>
+                <button onclick="loadNextQuestion()" id="nextBtn" disabled>NEXT SCENARIO</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // --- Game Data ---
+        const SCENARIOS = [
+            {
+                goal: "Find a specific employee ID within a large database system.",
+                requirement: "Must examine existing data elements.",
+                correct: "Traversing"
+            },
+            {
+                goal: "Add a new customer order to the processing queue.",
+                requirement: "Requires allocating space for the new data unit.",
+                correct: "Insertion"
+            },
+            {
+                goal: "Free up memory used by a completed task in the operating system's memory allocation.",
+                requirement: "Requires removing a data element and linking around it.",
+                correct: "Deletion"
+            },
+            {
+                goal: "Update the status of every single product listed in inventory.",
+                requirement: "Requires visiting each element exactly once.",
+                correct: "Traversing"
+            },
+            {
+                goal: "Remove the oldest record from a cache to make room for new data (FIFO).",
+                requirement: "Must eliminate a specified element and readjust pointers/indexes.",
+                correct: "Deletion"
+            }
+        ];
+
+        // --- Game State ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        
+        // --- DOM Elements ---
+        const goalTextEl = document.getElementById('goalText');
+        const requirementTextEl = document.getElementById('requirementText');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const questionCounter = document.getElementById('questionCounter');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const feedbackEl = document.getElementById('feedback');
+        
+        // --- Utility Functions ---
+
+        function getSelectedValue(name) {
+            return document.querySelector(`input[name="${name}"]:checked`)?.value;
+        }
+        
+        // Function to reset the appearance of all labels to default
+        function clearSelections() {
+            document.querySelectorAll('input[name="operation_choice"]').forEach(radio => {
+                radio.checked = false;
+            });
+            document.querySelectorAll('.option-group label').forEach(label => {
+                label.style.backgroundColor = '#f0f8ff'; // Default background
+                label.style.color = '#333'; // Default text color
+                label.style.borderColor = '#1e90ff'; // Default border color
+            });
+        }
+
+        // Function to handle the real-time visual highlight when a radio button is selected
+        function handleOptionChange() {
+            // First, clear any existing manual highlights (except the check-answer result)
+            document.querySelectorAll('.option-group label').forEach(label => {
+                // Reset to default neutral look only if they aren't the check-answer result colors
+                if (label.style.backgroundColor !== '#d4edda' && label.style.backgroundColor !== '#f8d7da') {
+                    label.style.backgroundColor = '#f0f8ff';
+                    label.style.color = '#333';
+                    label.style.borderColor = '#1e90ff';
+                }
+            });
+            
+            // Then, apply the checked styling only to the currently selected label
+            document.querySelectorAll('input[name="operation_choice"]').forEach(radio => {
+                if (radio.checked) {
+                    const label = radio.nextElementSibling;
+                    // Apply the 'checked' style (mimicking the CSS :checked state)
+                    label.style.backgroundColor = '#1e90ff';
+                    label.style.color = 'white';
+                    label.style.borderColor = '#0056b3';
+                }
+            });
+        }
+        
+        function updateScore(isCorrect) {
+            if (isCorrect) {
+                score++;
+            }
+            scoreDisplay.textContent = score;
+            questionCounter.textContent = `${currentQuestionIndex} / ${SCENARIOS.length}`;
+        }
+
+        // --- Game Flow ---
+
+        function loadNextQuestion() {
+            if (currentQuestionIndex >= SCENARIOS.length) {
+                endGame();
+                return;
+            }
+
+            const q = SCENARIOS[currentQuestionIndex];
+            
+            // 1. Update UI
+            goalTextEl.textContent = `GOAL: ${q.goal}`;
+            requirementTextEl.textContent = `REQUIREMENT: ${q.requirement}`;
+            
+            // 2. Clear previous state
+            clearSelections();
+            checkBtn.disabled = false;
+            nextBtn.disabled = true;
+            feedbackEl.style.backgroundColor = 'transparent';
+            feedbackEl.textContent = `Scenario ${currentQuestionIndex + 1}: Identify the required operation.`;
+
+            // Update counter before checking, ready for the next one
+            questionCounter.textContent = `${currentQuestionIndex + 1} / ${SCENARIOS.length}`;
+        }
+
+        function checkAnswer() {
+            const q = SCENARIOS[currentQuestionIndex];
+            const selectedOp = getSelectedValue('operation_choice');
+
+            if (!selectedOp) {
+                feedbackEl.style.backgroundColor = '#fff3cd';
+                feedbackEl.style.color = '#856404';
+                feedbackEl.innerHTML = 'Please select an operation before checking.';
+                return;
+            }
+
+            // Reset appearance for all options before showing results
+            // We need this line to remove the "instant highlight" style
+            document.querySelectorAll('.option-group label').forEach(label => {
+                label.style.backgroundColor = '#f0f8ff';
+                label.style.color = '#333';
+                label.style.borderColor = '#1e90ff';
+            });
+            
+            const isCorrect = selectedOp === q.correct;
+            
+            // 1. Highlight Correct Answer and User's Choice
+            document.querySelectorAll(`input[name="operation_choice"]`).forEach(radio => {
+                const label = radio.nextElementSibling;
+                const isCorrectOption = radio.value === q.correct;
+
+                if (isCorrectOption) {
+                    // Always show the correct one in green
+                    label.style.backgroundColor = '#d4edda';
+                    label.style.borderColor = 'green';
+                    label.style.color = '#155724';
+                } else if (radio.checked) {
+                    // Highlight the user's incorrect choice in red
+                    label.style.backgroundColor = '#f8d7da';
+                    label.style.borderColor = 'red';
+                    label.style.color = '#721c24';
+                }
+            });
+
+            // 2. Final Feedback
+            if (isCorrect) {
+                updateScore(true);
+                feedbackEl.style.backgroundColor = '#d4edda';
+                feedbackEl.style.color = '#155724';
+                feedbackEl.innerHTML = `CORRECT! The operation is ${q.correct}.`;
+            } else {
+                updateScore(false);
+                feedbackEl.style.backgroundColor = '#fff3cd';
+                feedbackEl.style.color = '#856404';
+                feedbackEl.innerHTML = `INCORRECT. The correct operation is highlighted in green.`;
+            }
+
+            checkBtn.disabled = true;
+            nextBtn.disabled = false;
+            currentQuestionIndex++;
+        }
+        
+        function endGame() {
+            goalTextEl.innerHTML = `--- CHALLENGE COMPLETE ---`;
+            requirementTextEl.innerHTML = `Final Score: ${score} out of ${SCENARIOS.length}.`;
+            
+            feedbackEl.style.backgroundColor = '#e6f7ff';
+            feedbackEl.style.color = '#4b0082';
+            feedbackEl.innerHTML = `Excellent work! Click Start New Game to reinforce your knowledge.`;
+            
+            checkBtn.style.display = 'none';
+            nextBtn.textContent = 'START NEW GAME';
+            nextBtn.onclick = initializeGame;
+            nextBtn.disabled = false;
+        }
+        
+        function initializeGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            checkBtn.style.display = 'inline-block';
+            nextBtn.textContent = 'NEXT SCENARIO';
+            nextBtn.onclick = loadNextQuestion;
+            
+            // ADDED EVENT LISTENERS for instant highlighting on selection
+            document.querySelectorAll('input[name="operation_choice"]').forEach(radio => {
+                radio.removeEventListener('change', handleOptionChange); // Prevent duplicates
+                radio.addEventListener('change', handleOptionChange);
+            });
+
+            loadNextQuestion();
+        }
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijkstra's: Inter-City Logistics Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styling (Logistics Theme) --- */
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #f0f8ff; /* Very Light Blue */
+            color: #343a40;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 900px;
+            padding: 30px;
+            border: 3px solid #1a75ff; /* Strong Blue */
+        }
+        h1 {
+            color: #1a75ff;
+            text-align: center;
+            border-bottom: 2px solid #28a745; /* Green for success */
+            padding-bottom: 10px;
+            margin-bottom: 10px; /* Reduced margin */
+            font-size: 1.8em;
+            text-transform: uppercase;
+        }
+        
+        /* --- Algorithm Overview Section (New) --- */
+        #algo-overview {
+            background-color: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #90caf9;
+            font-size: 0.9em;
+            line-height: 1.4;
+            text-align: left; /* Aligned left for bullet points */
+        }
+        #algo-overview h3 {
+            margin-top: 0;
+            color: #ff4500;
+            font-size: 1.1em;
+            border-bottom: 1px dashed #ff450050;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+        }
+        #algo-overview ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        #algo-overview li {
+            margin-bottom: 3px;
+        }
+        #algo-overview strong {
+            color: #1a75ff;
+        }
+        
+
+        .reference-panel {
+            background-color: #e6f7ff; /* Light Blue Reference */
+            border: 1px solid #99c2ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+        .reference-panel strong { color: #1a75ff; }
+        .task-description {
+            background-color: #d4edda; /* Light Green for task clarity */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #28a745;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #155724;
+            font-weight: 600;
+            text-align: center;
+        }
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; background-color: #28a745; /* Green Header */
+            color: white; border-radius: 8px;
+        }
+        .header-bar span { color: #ffc107; }
+        .feedback-area {
+            min-height: 40px; padding: 10px; border-radius: 8px; margin-top: 20px; text-align: center;
+            font-weight: bold; transition: background-color 0.3s;
+        }
+        .feedback-area.success { background-color: #d4edda; color: #155724; border: 1px solid #28a745; }
+        .feedback-area.error { background-color: #f8d7da; color: #721c24; border: 1px solid #dc3545; }
+        .feedback-area.info { background-color: #e9ecef; color: #383d41; border: 1px solid #adb5bd; }
+
+        /* --- Graph Visualization (City Map) --- */
+        .graph-display {
+            width: 100%; height: 400px; border: 1px solid #ced4da; border-radius: 8px;
+            background: linear-gradient(to bottom right, #f8f9fa 0%, #e6e6fa 100%);
+            position: relative; margin-top: 20px;
+        }
+        .node { 
+            position: absolute; width: auto; min-width: 60px; height: 30px; border-radius: 5px; background-color: #1a75ff; 
+            color: white; display: flex; justify-content: center; align-items: center; padding: 0 5px;
+            font-weight: bold; cursor: pointer; z-index: 10; transition: all 0.2s; 
+            font-size: 0.8em;
+        }
+        .node.start { background-color: #ff4500; border-color: #ff4500; } 
+        .node.end { background-color: #17a2b8; border-color: #17a2b8; } 
+        .node.visited { background-color: #28a745; border-color: #1e7e34; } 
+        .node.current { 
+            background-color: #ffc107; border-color: #e0a800; 
+            animation: pulse-yellow 1s infinite alternate; 
+        }
+        .node:hover:enabled { transform: scale(1.05); }
+        
+        .edge-line { position: absolute; height: 3px; background-color: #adb5bd; transform-origin: 0 50%; z-index: 5; transition: background-color 0.2s; }
+        .edge-line.in-path { background-color: #ff4500; height: 4px; } 
+        .edge-weight { 
+            position: absolute; background-color: #fff; padding: 2px 6px; border-radius: 4px; 
+            font-size: 0.9em; border: 1px solid #ced4da; z-index: 15; pointer-events: none;
+            color: #343a40;
+        }
+
+        .distance-label {
+            position: absolute; font-size: 0.8em; background-color: #f8f9fa; padding: 2px 5px; border-radius: 3px;
+            border: 1px solid #ced4da; color: #333; font-weight: bold; z-index: 20; pointer-events: none;
+            min-width: 40px; text-align: center;
+        }
+        .distance-label.current-dist { background-color: #fff3cd; border-color: #ffc107; color: #856404; }
+        .distance-label.final { background-color: #28a745; color: white; border-color: #1e7e34; }
+        .distance-label span { font-size: 0.7em; opacity: 0.8; }
+        
+        @keyframes pulse-yellow { from { box-shadow: 0 0 0px #ffc107; } to { box-shadow: 0 0 10px #ffc107; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>INTER-CITY LOGISTICS: SHORTEST TIME ROUTING</h1>
+
+        <div id="algo-overview">
+            <h3>DIJKSTRA'S ALGORITHM: LOGIC</h3>
+            <ul>
+                <li>1. Initialization: Set the starting city's ET to 0, all others to Infinity.</li>
+                <li>2. Greedy Step: Always select the unvisited city with the minimum current ET.</li>
+                <li>3. Relaxation: After selecting a city, check its neighbors. If travelling through the chosen city offers a shorter ET to a neighbor, update that neighbor's ET.</li>
+            </ul>
+        </div>
+
+      
+
+        <div class="header-bar">
+            <span>START HUB: <span id="dijkstra-start-node">London</span></span>
+            <span>DESTINATION: <span id="dijkstra-target-node">Vienna</span></span>
+            <span>FINALIZED ROUTES: <span id="dijkstra-visited-count">0</span></span>
+        </div>
+
+        <div class="task-description">
+            <strong id="dijkstra-task-text">TASK: Select the unvisited City (node) with the lowest calculated Estimated Transit Time (ET).</strong>
+        </div>
+
+        <div id="dijkstra-graph-display" class="graph-display">
+            </div>
+
+        <div id="dijkstra-feedback" class="feedback-area info">
+            Initialize city times (ETs). Select the Starting Hub (London) to begin the transit plan.
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="confirmDijkstraSelection()" id="dijkstra-confirm-btn" disabled>CONFIRM ROUTE</button>
+            <button onclick="resetDijkstraGame()" id="dijkstra-reset-btn">RESET PLAN</button>
+        </div>
+    </div>
+
+    <script>
+        // --- REAL-WORLD CITIES AND TRANSIT TIMES (Simplified) ---
+        const dijkstraGraphConfig = {
+            nodes: [
+                { id: 'London', label: 'London', x: 50, y: 50 }, 
+                { id: 'Paris', label: 'Paris', x: 200, y: 50 }, 
+                { id: 'Berlin', label: 'Berlin', x: 350, y: 150 },
+                { id: 'Brussels', label: 'Brussels', x: 50, y: 350 }, 
+                { id: 'Rome', label: 'Rome', x: 200, y: 250 }, 
+                { id: 'Vienna', label: 'Vienna', x: 350, y: 350 },
+            ],
+            edges: [
+                // Weights represent Transit Time (Hours)
+                { from: 'London', to: 'Paris', weight: 4 }, 
+                { from: 'London', to: 'Brussels', weight: 1 }, // Eurostar/Short Flight
+                { from: 'Paris', to: 'Berlin', weight: 8 }, 
+                { from: 'Paris', to: 'Rome', weight: 3 },
+                { from: 'Berlin', to: 'Vienna', weight: 2 },
+                { from: 'Brussels', to: 'Rome', weight: 7 },
+                { from: 'Rome', to: 'Berlin', weight: 4 }, // Added edge for complexity
+                { from: 'Rome', to: 'Vienna', weight: 6 }
+            ]
+        };
+        const START_NODE = 'London';
+        const END_NODE = 'Vienna';
+
+        let dijkstraState = {
+            distances: {},
+            visited: new Set(),
+            previous: {},
+            currentSelection: null,
+            requiredSteps: dijkstraGraphConfig.nodes.length,
+            target: END_NODE
+        };
+
+        const dijkstraDom = {
+            display: document.getElementById('dijkstra-graph-display'),
+            visitedCount: document.getElementById('dijkstra-visited-count'),
+            feedback: document.getElementById('dijkstra-feedback'),
+            confirmBtn: document.getElementById('dijkstra-confirm-btn'),
+            taskText: document.getElementById('dijkstra-task-text'),
+            startLabel: document.getElementById('dijkstra-start-node'),
+            targetLabel: document.getElementById('dijkstra-target-node')
+        };
+        
+        const getNodeLabel = (id) => dijkstraGraphConfig.nodes.find(n => n.id === id)?.label || id;
+
+
+        // --- Visualization Helper ---
+        function drawEdge(container, edge, nodes) {
+             const fromNode = nodes.find(n => n.id === edge.from);
+             const toNode = nodes.find(n => n.id === edge.to);
+             if (!fromNode || !toNode) return {};
+
+             const x1 = fromNode.x + 30; const y1 = fromNode.y + 15; 
+             const x2 = toNode.x + 30; const y2 = toNode.y + 15;
+             const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+             const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+             const edgeDiv = document.createElement('div');
+             edgeDiv.className = 'edge-line';
+             edgeDiv.style.width = `${length}px`;
+             edgeDiv.style.left = `${x1}px`;
+             edgeDiv.style.top = `${y1}px`;
+             edgeDiv.style.transform = `rotate(${angle}deg)`;
+             edgeDiv.dataset.from = edge.from;
+             edgeDiv.dataset.to = edge.to;
+             
+             const weightDiv = document.createElement('div');
+             weightDiv.className = 'edge-weight';
+             weightDiv.textContent = `${edge.weight} hrs`;
+             weightDiv.style.left = `${(x1 + x2) / 2 - 15}px`;
+             weightDiv.style.top = `${(y1 + y2) / 2 - 15}px`;
+
+             container.appendChild(edgeDiv);
+             container.appendChild(weightDiv);
+             return { edgeDiv, weightDiv };
+        }
+
+        function drawDijkstraGraph() {
+            dijkstraDom.display.innerHTML = '';
+            dijkstraGraphConfig.nodes.forEach(node => {
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                nodeDiv.id = `dijkstra-node-${node.id}`;
+                nodeDiv.textContent = node.label; 
+                nodeDiv.style.left = `${node.x}px`;
+                nodeDiv.style.top = `${node.y}px`;
+                if (node.id === START_NODE) nodeDiv.classList.add('start');
+                if (node.id === END_NODE) nodeDiv.classList.add('end');
+                nodeDiv.onclick = () => dijkstraNodeClicked(node.id);
+                dijkstraDom.display.appendChild(nodeDiv);
+
+                // Distance Label Setup
+                const distLabel = document.createElement('div');
+                distLabel.className = 'distance-label';
+                distLabel.id = `dijkstra-dist-${node.id}`;
+                
+                // --- Optimized Horizontal and Vertical Offsets ---
+                // General Offset: Reduced from 100 to 80.
+                // London Offset: Shifted closer horizontally (to 80) and vertically up (to clear node text).
+                let xOffset = node.x + 80;
+                let yOffset = node.y - 5;
+                
+                if (node.id === START_NODE) {
+                    // Start Node (London): Closer horizontal placement (50 + 35 = 85 -> 80)
+                    xOffset = node.x + 65; 
+                    yOffset = node.y - 30; // Shift up 25px
+                }
+                
+                distLabel.style.left = `${xOffset}px`; 
+                distLabel.style.top = `${yOffset}px`;
+                distLabel.innerHTML = `ET: <span id="dijkstra-val-${node.id}">∞</span>`;
+                dijkstraDom.display.appendChild(distLabel);
+            });
+
+            dijkstraGraphConfig.edges.forEach(edge => {
+                drawEdge(dijkstraDom.display, edge, dijkstraGraphConfig.nodes);
+            });
+        }
+
+        // --- Dijkstra's Logic ---
+
+        function initializeDijkstra() {
+            dijkstraGraphConfig.nodes.forEach(node => {
+                dijkstraState.distances[node.id] = Infinity;
+                dijkstraState.previous[node.id] = null;
+            });
+            dijkstraState.distances[START_NODE] = 0;
+            dijkstraState.currentSelection = START_NODE; 
+            
+            dijkstraDom.startLabel.textContent = getNodeLabel(START_NODE);
+            dijkstraDom.targetLabel.textContent = getNodeLabel(END_NODE);
+            
+            updateDijkstraUI();
+        }
+
+        function relaxNeighbors(nodeId) {
+            const currentDist = dijkstraState.distances[nodeId];
+
+            // Get all outgoing edges from the current node
+            const neighbors = dijkstraGraphConfig.edges.filter(e => e.from === nodeId);
+
+            neighbors.forEach(edge => {
+                const neighborId = edge.to;
+                if (dijkstraState.visited.has(neighborId)) return;
+
+                const newDist = currentDist + edge.weight;
+                const oldDist = dijkstraState.distances[neighborId];
+
+                if (newDist < oldDist) {
+                    dijkstraState.distances[neighborId] = newDist;
+                    dijkstraState.previous[neighborId] = nodeId;
+                }
+            });
+        }
+
+        function findMinUnvisited() {
+            let minDist = Infinity;
+            let minNode = null;
+            
+            dijkstraGraphConfig.nodes.forEach(node => {
+                if (!dijkstraState.visited.has(node.id)) {
+                    if (dijkstraState.distances[node.id] < minDist) {
+                        minDist = dijkstraState.distances[node.id];
+                        minNode = node.id;
+                    }
+                }
+            });
+            return minNode;
+        }
+
+        function dijkstraNodeClicked(nodeId) {
+            if (dijkstraState.visited.has(nodeId)) {
+                dijkstraDom.feedback.textContent = `Error: City ${getNodeLabel(nodeId)} route is already finalized (Green). Select an unvisited city.`;
+                dijkstraDom.feedback.classList.value = 'feedback-area error';
+                dijkstraState.currentSelection = null;
+                dijkstraDom.confirmBtn.disabled = true;
+                updateDijkstraUI();
+                return;
+            }
+
+            const minUnvisited = findMinUnvisited();
+
+            if (minUnvisited === null) return; 
+
+            if (nodeId === minUnvisited) {
+                dijkstraState.currentSelection = nodeId;
+                dijkstraDom.confirmBtn.disabled = false;
+                dijkstraDom.feedback.textContent = `City ${getNodeLabel(nodeId)} selected. Click CONFIRM ROUTE to secure its minimum transit time.`;
+                dijkstraDom.feedback.classList.value = 'feedback-area info';
+            } else {
+                dijkstraDom.feedback.textContent = `Error: City ${getNodeLabel(nodeId)} is NOT the fastest unvisited route (must be ${getNodeLabel(minUnvisited)} with ET ${dijkstraState.distances[minUnvisited]} hours).`;
+                dijkstraDom.feedback.classList.value = 'feedback-area error';
+                dijkstraState.currentSelection = null;
+                dijkstraDom.confirmBtn.disabled = true;
+            }
+            updateDijkstraUI();
+        }
+
+        function confirmDijkstraSelection() {
+            const nodeId = dijkstraState.currentSelection;
+            if (!nodeId) return;
+
+            // 1. Relax (Update distances of neighbors)
+            relaxNeighbors(nodeId);
+            
+            // 2. Mark as Visited (Finalize shortest path)
+            dijkstraState.visited.add(nodeId);
+            dijkstraState.currentSelection = null;
+
+            if (dijkstraState.visited.size === dijkstraState.requiredSteps) {
+                 const finalPathCost = dijkstraState.distances[END_NODE];
+                 dijkstraDom.feedback.textContent = `MISSION SUCCESS! Shortest Transit Time to ${getNodeLabel(END_NODE)} is ${finalPathCost} hours.`;
+                 dijkstraDom.feedback.classList.value = 'feedback-area success';
+                 dijkstraDom.confirmBtn.disabled = true;
+                 buildFinalPath();
+            } else {
+                const nextNode = findMinUnvisited();
+                const nextCost = dijkstraState.distances[nextNode];
+                dijkstraDom.feedback.textContent = `Route to ${getNodeLabel(nodeId)} confirmed (Green). Next activation target: ${getNodeLabel(nextNode)} (ET ${nextCost} hours).`;
+                dijkstraDom.feedback.classList.value = 'feedback-area success';
+                dijkstraDom.confirmBtn.disabled = true;
+            }
+
+            updateDijkstraUI(true);
+        }
+
+        function buildFinalPath() {
+            let path = [];
+            let current = END_NODE;
+            while (current !== null) {
+                path.push(current);
+                const prev = dijkstraState.previous[current];
+                if (!prev) break;
+                current = prev;
+            }
+            path = path.reverse();
+            
+            // Highlight final path edges
+            for (let i = 0; i < path.length - 1; i++) {
+                const from = path[i];
+                const to = path[i + 1];
+
+                document.querySelectorAll('.edge-line').forEach(el => {
+                    const elFrom = el.dataset.from;
+                    const elTo = el.dataset.to;
+                    
+                    // Highlight the edge corresponding to the shortest path
+                    const isPathEdge = (elFrom === from && elTo === to) || (elFrom === to && elTo === from);
+                    if (isPathEdge) {
+                        el.classList.add('in-path');
+                    }
+                });
+            }
+        }
+
+        function updateDijkstraUI() {
+            dijkstraDom.visitedCount.textContent = dijkstraState.visited.size;
+
+            dijkstraGraphConfig.nodes.forEach(node => {
+                const nodeId = node.id;
+                const nodeEl = document.getElementById(`dijkstra-node-${nodeId}`);
+                const distElVal = document.getElementById(`dijkstra-val-${nodeId}`);
+                const distLabel = document.getElementById(`dijkstra-dist-${nodeId}`);
+                const dist = dijkstraState.distances[nodeId];
+
+                nodeEl.classList.remove('current', 'visited', 'selected');
+                distLabel.classList.remove('final', 'current-dist');
+                
+                distElVal.textContent = dist === Infinity ? '∞' : dist;
+
+                if (dijkstraState.visited.has(nodeId)) {
+                    nodeEl.classList.add('visited');
+                    distLabel.classList.add('final');
+                    nodeEl.onclick = null; 
+                } else {
+                    nodeEl.classList.remove('visited');
+                    nodeEl.onclick = () => dijkstraNodeClicked(nodeId);
+                    if (dist !== Infinity) {
+                        distLabel.classList.add('current-dist');
+                    }
+                }
+                
+                if (nodeId === dijkstraState.currentSelection) {
+                    nodeEl.classList.add('selected');
+                }
+
+                // Highlight the minimum unvisited node after the first step
+                if (dijkstraState.visited.size > 0 && !dijkstraState.visited.has(nodeId) && findMinUnvisited() === nodeId) {
+                    nodeEl.classList.add('current');
+                }
+            });
+        }
+
+        function resetDijkstraGame() {
+            dijkstraState = {
+                distances: {}, visited: new Set(), previous: {}, currentSelection: null,
+                requiredSteps: dijkstraGraphConfig.nodes.length, target: END_NODE
+            };
+            drawDijkstraGraph();
+            initializeDijkstra();
+            dijkstraDom.feedback.textContent = "Start by selecting Hub A (London, ET 0) to confirm its shortest path.";
+            dijkstraDom.feedback.classList.value = 'feedback-area info';
+            dijkstraDom.confirmBtn.disabled = false; 
+            document.getElementById('dijkstra-visited-count').textContent = '0';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            resetDijkstraGame();
+        });
+    </script>
+</body>
+</html>
